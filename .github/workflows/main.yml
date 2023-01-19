@@ -31,6 +31,12 @@ jobs:
       - name: Unit & Integration tests
         run: yarn test
 
+      - name: Upload coverage reports to Codecov
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
+
   # Second Job
   build-android:
     needs: install-and-test
