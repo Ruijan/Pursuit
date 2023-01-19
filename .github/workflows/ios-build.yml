@@ -10,19 +10,6 @@ on:
         required: false
         type: boolean
         description: Publish to Appcenter
-    secrets:
-      P12_BASE64:
-        required: true
-      MOBILEPROVISION_BASE64:
-        required: true
-      IOS_TEAM_ID:
-        required: true
-      CERTIFICATE_PASSWORD:
-        required: true
-      NPM_TOKEN:
-        required: true
-      APP_CENTER_TOKEN_IOS:
-        required: true
 
 jobs:
   build-ios:
