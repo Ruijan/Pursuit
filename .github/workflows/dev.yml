@@ -1,0 +1,30 @@
+
+name: Develop Updated
+
+on:
+  push:
+    branches: [develop]
+jobs:
+  steps:
+    - name: "Automated Version Bump"
+      uses: "paramsinghvc/gh-action-bump-version@master"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag-prefix: "v"
+        tag-suffix: "dev"
+
+    - name: "Sync React Native version with package.json version"
+      run: npx react-native-version
+
+    - name: "Commit version sync changes"
+      uses: EndBug/add-and-commit@v9
+      with:
+        message: "chore: react native - android & ios versions updated"
+
+    - name: "Automated Release"
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: "latest"
+        title: Build
