@@ -2,7 +2,10 @@ name: Develop Updated
 on:
   push:
     branches: [develop]
-
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+permission: write-all
 
 jobs:
   versioning:
@@ -43,7 +46,7 @@ jobs:
       - name: "Automated Release"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: ${{ secrets.TOKEN_GITHUB }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: "latest"
           title: Build
 
