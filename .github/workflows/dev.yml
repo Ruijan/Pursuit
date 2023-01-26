@@ -5,11 +5,12 @@ on:
 
 jobs:
   versioning:
+    runs-on: ubuntu-latest
     steps:
       - name: "Automated Version Bump"
         uses: "paramsinghvc/gh-action-bump-version@master"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
         with:
           tag-prefix: "v"
           tag-suffix: "dev"
@@ -25,7 +26,7 @@ jobs:
       - name: "Automated Release"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.TOKEN_GITHUB }}
           automatic_release_tag: "latest"
           title: Build
 
