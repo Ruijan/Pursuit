@@ -5,7 +5,7 @@ on:
     secrets:
       GITHUB_TOKEN:
         required: true
-permission: write-all
+permissions: write-all
 
 jobs:
   versioning:
