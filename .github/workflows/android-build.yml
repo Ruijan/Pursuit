@@ -67,7 +67,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: FinderUK.aab
+          name: Pursuit.aab
           path: "android/"
 
       - name: set up JDK 1.8
