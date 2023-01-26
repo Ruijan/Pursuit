@@ -10,6 +10,9 @@ on:
         required: false
         type: boolean
         description: Publish to Appcenter
+    secrets:
+      APP_CENTER_TOKEN_ANDROID:
+        required: true
 
 jobs:
   build-android:
@@ -39,6 +42,7 @@ jobs:
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-caches-
+
       - name: Make Gradlew Executable
         run: cd android && chmod +x ./gradlew
         # Build Command
@@ -46,6 +50,7 @@ jobs:
       - name: Build Android ${{inputs.environment == 'release' && 'Release' || 'Debug'}}
         run: |
           cd android && ./gradlew bundle${{inputs.environment == 'release' && 'Release' || 'Debug'}} --no-daemon
+
       # Upload to Artifact
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
