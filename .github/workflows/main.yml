@@ -3,7 +3,7 @@ name: Pull Request into Master, Develop and Preprod
 on:
   pull_request:
     branches:
-      - "master"
+      - "main"
       - "develop"
       - "preprod"
 
@@ -29,10 +29,28 @@ jobs:
         run: yarn lint
 
       - name: Unit & Integration tests
-        run: yarn test:ci
+        run: yarn test
 
-      - name: Jest coverage report
-        uses: ArtiomTr/jest-coverage-report-action@v2.0.6
-        with:
-          coverage-file: ./jest-report.json
-          base-coverage-file: ./jest-report.json
+      - name: Upload coverage reports to Codecov
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
+
+  # Second Job
+  build-android:
+    needs: install-and-test
+    uses: ./.github/workflows/android-build.yml
+    with:
+      environment: release
+    secrets: inherit
+
+
+
+  # Third Job
+  #build-ios:
+  #  needs: install-and-test
+  #  uses: ./.github/workflows/ios-build.yml
+  #  with:
+  #    environment: release
+  #  secrets: inherit
