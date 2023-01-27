@@ -78,9 +78,9 @@ jobs:
       - name: Upload artifact to App Center
         uses: wzieba/AppCenter-Github-Action@v1
         with:
-          appName: Finder.com/Finder-UK-Android
+          appName: Ruijan/Pursuit
           token: ${{secrets.APP_CENTER_TOKEN_ANDROID}}
-          group: UKInternal
+          group: Testers
           file: android/app-release.aab
           notifyTesters: true
           debug: false
