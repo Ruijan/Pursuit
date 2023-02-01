@@ -25,7 +25,7 @@ export class HomeScreen extends React.Component {
 
   async connect() {
     console.log(this.state);
-    this.account
+    await this.account
       .connectNeurosity(this.state.email, this.state.password)
       .then(() => {
         console.log('results from connection');

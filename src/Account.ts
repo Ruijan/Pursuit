@@ -12,7 +12,7 @@ class Account {
     return this.neurosity.loggedIn;
   }
 
-  connectNeurosity(username: string, password: string): Promise<boolean> {
+  connectNeurosity(username: string, password: string): Promise<void> {
     return this.neurosity.connect(username, password);
   }
 

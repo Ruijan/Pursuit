@@ -26,7 +26,7 @@ class HomeScreenConsumer extends React.Component<{
   route: any;
 }> {
   render() {
-    let {navigation, route} = this.props;
+    let navigation = this.props.navigation;
     return (
       <AppContext.Consumer>
         {account => (
@@ -65,10 +65,5 @@ function App(): JSX.Element {
     </AppContext.Provider>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'black',
-  },
-});
 
 export default App;

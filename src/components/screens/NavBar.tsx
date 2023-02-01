@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button, FlatList, StatusBar, StyleSheet, View} from 'react-native';
+import {Button, FlatList, StyleSheet, View} from 'react-native';
 
 function Item(title: string, target: any, navigation: any) {
   return <Button title={title} onPress={() => navigation.navigate(target)} />;
@@ -38,5 +38,5 @@ export class NavBar extends React.Component {
 const styles = StyleSheet.create({
   bar: {
     backgroundColor: '#1A1A1B',
-  }
+  },
 });
