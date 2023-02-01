@@ -13,7 +13,6 @@ import AccountScreen from './components/screens/AccountScreen';
 import LiveScreen from './components/screens/LiveScreen';
 import Account from './Account';
 import NeurosityAccount from './NeurosityAccount';
-import {StyleSheet} from 'react-native';
 import {Neurosity} from './EEGHeadset/Neurosity';
 
 const Stack = createBottomTabNavigator();
