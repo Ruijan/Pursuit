@@ -6,18 +6,18 @@ import {
   DocumentDirectoryPath,
   ReadDirItem,
 } from 'react-native-fs';
-import {Neurosity} from './EEGHeadset/Neurosity';
+import {NeurosityHeadset} from '../EEGHeadset/NeurosityHeadset';
 
 class NeurosityAccount {
   public loggedIn: boolean = false;
-  public neurosity: Neurosity;
+  public neurosity: NeurosityHeadset;
   private username: string = '';
   private password: string = '';
-  constructor(neurosity: Neurosity) {
+  constructor(neurosity: NeurosityHeadset) {
     this.neurosity = neurosity;
   }
 
-  async loadUser() {
+  async init() {
     let result = await readDir(DocumentDirectoryPath);
     let credentialsString = '';
     if (result.length > 0 && this.isLoginFile(result[0], result[0].name)) {
@@ -25,7 +25,15 @@ class NeurosityAccount {
       let userData = JSON.parse(credentialsString);
       this.username = userData.username;
       this.password = userData.password;
-      await this.neurosity.login(userData);
+      try {
+        await this.neurosity.login(userData);
+      } catch (error) {
+        if (error === 'Already logged in.') {
+          console.log(error);
+        } else {
+          throw error;
+        }
+      }
       this.loggedIn = true;
     }
   }
@@ -48,7 +56,11 @@ class NeurosityAccount {
         'utf8',
       );
     } catch (err) {
-      throw err;
+      if (err === 'Already logged in.') {
+        console.log(err);
+      } else {
+        throw err;
+      }
     }
   }
 

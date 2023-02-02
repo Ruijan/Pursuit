@@ -1,103 +1,123 @@
-import {
-  StyleSheet,
-  Button,
-  Text,
-  TextInput,
-  View,
-  TouchableHighlight,
-} from 'react-native';
 import React from 'react';
-import Account from '../../Account';
+import Account from '../../Account/Account';
+import {LoggingView} from '../LoggingView';
+import {
+  Image,
+  Text,
+  TouchableHighlight,
+  View,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
+import {ErrorHandler} from '../../ErrorHandler';
+const drivingRangeIcon = require('../../assets/driving-range-icon.png');
+const workIcon = require('../../assets/work.png');
+const golfIcon = require('../../assets/18golf.png');
 
-export class HomeScreen extends React.Component {
-  private navigation: any;
+type HomeScreenProps = {account: Account; errorHandler: ErrorHandler};
+type HomeScreenState = {
+  isLoggedIn: boolean;
+};
+
+export class HomeScreen extends React.Component<
+  HomeScreenProps,
+  HomeScreenState
+> {
+  private errorHandler: any;
   private account: Account;
   constructor(props: any) {
     super(props);
     this.state = {
-      email: '',
-      password: '',
-      isLoggedIn: this.props.account.isLoggedIn(),
+      isLoggedIn: false,
     };
-    this.navigation = this.props.navigation;
+    this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
+    this.connect = this.connect.bind(this);
   }
 
-  async connect() {
-    console.log(this.state);
-    await this.account
-      .connectNeurosity(this.state.email, this.state.password)
-      .then(() => {
-        console.log('results from connection');
-        this.setState({
-          isLoggedIn: true,
-        });
+  componentDidMount() {
+    let account = this.account;
+    account.init().then(() => {
+      this.setState({
+        isLoggedIn: account.isLoggedIn(),
       });
+    });
   }
-  async logout() {
-    await this.account.logout();
+
+  connect() {
     this.setState({
-      isLoggedIn: this.account.loggedIn,
+      isLoggedIn: this.account.isLoggedIn(),
     });
   }
 
   render() {
-    let button = <Button title="Log Out" onPress={() => this.logout()} />;
-    console.log(this.account.isLoggedIn());
-    if (!this.state.isLoggedIn) {
-      button = (
-        <View style={styles.form}>
-          <Text style={styles.labelText}>Email</Text>
-          <TextInput
-            placeholder="firstname.lastname@gmail.com"
-            placeholderTextColor="#808080"
-            onChangeText={newText => this.setState({email: newText})}
-            style={styles.textInput}
-          />
-          <Text style={styles.labelText}>Password</Text>
-          <TextInput
-            secureTextEntry={true}
-            placeholder="*********"
-            placeholderTextColor="#808080"
-            onChangeText={newText => this.setState({password: newText})}
-            style={styles.textInput}
-          />
-          <TouchableHighlight
-            underlayColor={'grey'}
-            onPress={() => this.connect()}
-            style={styles.submitButton}>
-            <Text>Log In</Text>
-          </TouchableHighlight>
-        </View>
+    let view = (
+      <LoggingView account={this.account} connectHandler={this.connect} />
+    );
+    if (this.state.isLoggedIn) {
+      view = (
+        <ScrollView style={{minHeight: 800, backgroundColor: '#010101'}}>
+          <View style={styles.container}>
+            <TouchableHighlight style={styles.submitButton}>
+              <View style={styles.form}>
+                <Image source={drivingRangeIcon} style={styles.width50} />
+                <Text style={styles.labelText}>Driving Range Session</Text>
+              </View>
+            </TouchableHighlight>
+            <TouchableHighlight style={styles.submitButton}>
+              <View style={styles.form}>
+                <Image source={golfIcon} style={styles.width50} />
+                <Text style={styles.labelText}>Golf course outdoor</Text>
+              </View>
+            </TouchableHighlight>
+            <TouchableHighlight style={styles.submitButton}>
+              <View style={styles.form}>
+                <Image source={workIcon} style={styles.width50} />
+                <Text style={styles.labelText}>Generic Activity</Text>
+              </View>
+            </TouchableHighlight>
+          </View>
+          <Text style={styles.text}>Previous activities</Text>
+          <View style={styles.container} />
+        </ScrollView>
       );
     }
-    return <View style={styles.container}>{button}</View>;
+    return view;
   }
 }
+
 const styles = StyleSheet.create({
+  width50: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
   container: {
     backgroundColor: '#010101',
-    height: '100%',
     color: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignContent: 'space-around',
+    columnGap: 10,
+    rowGap: 10,
+    marginTop: 10,
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    width: '100%',
+    margin: 'auto',
+    textAlign: 'left',
   },
   labelText: {
     color: '#fff',
     marginTop: 10,
-    width: '75%',
-  },
-  textInput: {
-    color: '#fff',
-    width: '75%',
-    marginTop: 10,
-    borderRadius: 12,
-  },
-  form: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    textAlign: 'center',
     width: '100%',
-    margin: 'auto',
-    textAlign: 'left',
+  },
+  text: {
+    backgroundColor: '#010101',
+    color: 'white',
+    paddingLeft: 10,
+    marginTop: 30,
   },
   submitButton: {
     alignItems: 'center',
@@ -106,10 +126,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 4,
     elevation: 3,
-    marginTop: 15,
-    backgroundColor: 'white',
-    width: '75%',
+    backgroundColor: '#1E1E1E',
+    width: '40%',
+  },
+  form: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    margin: 'auto',
+    textAlign: 'center',
   },
 });
-
-export default HomeScreen;

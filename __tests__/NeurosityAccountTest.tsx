@@ -1,6 +1,6 @@
-import NeurosityAccount from '../src/NeurosityAccount';
-import {Neurosity} from '../src/EEGHeadset/Neurosity';
+import NeurosityAccount from '../src/Account/NeurosityAccount';
 import {readDir, stat, readFile, writeFile, unlink} from 'react-native-fs';
+import {NeurosityHeadset} from '../src/EEGHeadset/NeurosityHeadset';
 jest.setTimeout(60000);
 jest.mock('react-native-fs', () => {
   return {
@@ -47,17 +47,17 @@ jest.mock('react-native-fs', () => {
     PicturesDirectoryPath: jest.fn(),
   };
 });
-jest.mock('../src/EEGHeadset/Neurosity');
+jest.mock('../src/EEGHeadset/NeurosityHeadset');
 const loginMock = jest
-  .spyOn(Neurosity.prototype, 'login')
+  .spyOn(NeurosityHeadset.prototype, 'login')
   .mockImplementation(async () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       resolve();
     });
   });
 
 const logoutMock = jest
-  .spyOn(Neurosity.prototype, 'logout')
+  .spyOn(NeurosityHeadset.prototype, 'logout')
   .mockImplementation(() => {
     return new Promise(resolve => {
       resolve();
@@ -80,8 +80,8 @@ test('create neurosity account with no file', async () => {
       resolve([]);
     });
   });
-  let account = new NeurosityAccount(new Neurosity());
-  await account.loadUser();
+  let account = new NeurosityAccount(new NeurosityHeadset());
+  await account.init();
   expect(loginMock).toHaveBeenCalledTimes(0);
   expect(readDir).toHaveBeenCalled();
   expect(account.loggedIn).toBe(false);
@@ -136,8 +136,8 @@ test('create neurosity account with a file', async () => {
       );
     });
   });
-  let account = new NeurosityAccount(new Neurosity());
-  await account.loadUser();
+  let account = new NeurosityAccount(new NeurosityHeadset());
+  await account.init();
   expect(readDir).toHaveBeenCalled();
   expect(readFile).toHaveBeenCalled();
   expect(loginMock).toHaveBeenCalledTimes(1);
@@ -145,7 +145,7 @@ test('create neurosity account with a file', async () => {
 });
 
 test('connect to neurosity', async () => {
-  let account = new NeurosityAccount(new Neurosity());
+  let account = new NeurosityAccount(new NeurosityHeadset());
   await account.connect('username', 'password');
   expect(loginMock).toHaveBeenCalledTimes(1);
   expect(account.loggedIn).toBe(true);
@@ -156,7 +156,7 @@ test('connect to neurosity with wrong password', async () => {
   loginMock.mockImplementation(() => {
     throw new Error('Wrong credentials');
   });
-  let account = new NeurosityAccount(new Neurosity());
+  let account = new NeurosityAccount(new NeurosityHeadset());
   await expect(account.connect('username', 'password')).rejects.toThrow(Error);
   expect(loginMock).toHaveBeenCalledTimes(1);
   expect(account.loggedIn).toBe(false);
@@ -164,7 +164,7 @@ test('connect to neurosity with wrong password', async () => {
 });
 
 test('disconnect from  neurosity', async () => {
-  let account = new NeurosityAccount(new Neurosity());
+  let account = new NeurosityAccount(new NeurosityHeadset());
   //await account.connect('username', 'password');
   await account.logout();
   expect(logoutMock).toHaveBeenCalledTimes(1);

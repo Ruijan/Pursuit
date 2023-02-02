@@ -1,4 +1,4 @@
-export class Neurosity {
+export class Headset {
   async login(parameters: {email: string; password: string}): Promise<void> {
     console.log('logging in', parameters);
     return new Promise(resolve => {
