@@ -49,7 +49,7 @@ jobs:
 
       - name: Build Android ${{inputs.environment == 'release' && 'Release' || 'Debug'}}
         run: |
-          cd android && ./gradlew bundle${{inputs.environment == 'release' && 'Release' || 'Debug'}} --no-daemon
+          cd android && ./gradlew bundle${{inputs.environment == 'release' && 'Release' || 'Debug'}} --no-daemon --info --stacktrace
 
       # Upload to Artifact
       - name: Upload Artifact
