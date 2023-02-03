@@ -88,14 +88,28 @@ def reactNativeArchitectures() {
     return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
+def static getenv(path = "../.env") {
+    def env = [:]
+
+    def file = new File(path)
+    if (file.exists()) {
+        file.eachLine { line ->
+            def (name, value) = line.tokenize("=")
+            env[name.trim()] = value.trim()
+        }
+    }
+
+    return env
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.poc"
+    namespace "com.pursuit.poc"
     defaultConfig {
-        applicationId "com.poc"
+        applicationId "com.pursuit.poc"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 6
@@ -118,11 +132,20 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            storeFile file('release.keystore')
+            if (System.env['SIGNING_STORE_PASSWORD'] != null) {
+                project.logger.info('my info message')
+                storePassword System.env['SIGNING_STORE_PASSWORD']
+                keyAlias System.env['SIGNING_KEY_ALIAS']
+                keyPassword System.env['SIGNING_KEY_PASSWORD']
+            }
+            else{
+                project.logger.info(getenv()['SIGNING_STORE_PASSWORD'])
+                project.logger.info(getenv()['SIGNING_KEY_ALIAS'])
+                project.logger.info(getenv()['SIGNING_KEY_PASSWORD'])
+                storePassword getenv()['SIGNING_STORE_PASSWORD']
+                keyAlias getenv()['SIGNING_KEY_ALIAS']
+                keyPassword getenv()['SIGNING_KEY_PASSWORD']
             }
         }
     }
