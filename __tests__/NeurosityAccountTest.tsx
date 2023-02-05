@@ -75,7 +75,6 @@ beforeEach(() => {
 
 test('create neurosity account with no file', async () => {
   jest.mocked(readDir).mockImplementation(path => {
-    console.log('Read dir mock');
     return new Promise(resolve => {
       resolve([]);
     });

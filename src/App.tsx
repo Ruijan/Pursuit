@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import {StatusBar} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {HomeScreen} from './components/screens/HomeScreen';
@@ -56,7 +57,19 @@ class App extends React.Component {
   render() {
     return (
       <AppContext.Provider value={account}>
-        <NavigationContainer>
+        <StatusBar barStyle={'dark-content'} />
+        <NavigationContainer
+          theme={{
+            dark: true,
+            colors: {
+              primary: 'rgb(255, 45, 85)',
+              background: '#1A1A1B',
+              card: 'rgb(255, 255, 255)',
+              text: 'rgb(28, 28, 30)',
+              border: 'rgb(199, 199, 204)',
+              notification: 'rgb(255, 69, 58)',
+            },
+          }}>
           <Stack.Navigator
             screenOptions={{
               tabBarStyle: {backgroundColor: '#1A1A1B'},

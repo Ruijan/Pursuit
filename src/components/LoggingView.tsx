@@ -13,44 +13,46 @@ import {ErrorHandler} from '../ErrorHandler';
 export class LoggingView extends React.Component<any, any> {
   private account: Account;
   private errorHandler: ErrorHandler;
-  private readonly connectHandler: any;
-  private readonly disconnectHandler: any;
+
   constructor(props: any) {
     super(props);
     this.state = {
       email: '',
       password: '',
-      connecting: false,
+      connecting: this.props.account.connecting(),
       error: '',
       isLoggedIn: this.props.account.isLoggedIn(),
     };
     this.account = this.props.account;
     this.errorHandler = this.props.errorHandler;
-    this.connectHandler = this.props.connectHandler;
-    this.disconnectHandler = this.props.disconnectHandler;
     this.connect = this.connect.bind(this);
+    this.connectionHandler = this.connectionHandler.bind(this);
+    this.account.addConnectionHandler(this.connectionHandler);
+    this.account.addDisconnectHandler(this.connectionHandler);
   }
 
-  connect() {
+  connectionHandler() {
+    this.setState({
+      isLoggedIn: this.account.isLoggedIn(),
+      connecting: this.account.connecting(),
+    });
+  }
+
+  async connect() {
     this.setState({
       connecting: true,
     });
-    this.account
-      .connectNeurosity(this.state.email, this.state.password)
-      .then(() => {
-        console.log('results from connection');
-        this.setState({
-          isLoggedIn: true,
-          connecting: false,
-        });
-        this.connectHandler();
-      })
-      .catch(error => {
-        this.setState({
-          error: error,
-          connecting: false,
-        });
+    try {
+      await this.account.connectNeurosity(
+        this.state.email,
+        this.state.password,
+      );
+    } catch (error) {
+      this.setState({
+        error: String(error),
+        connecting: false,
       });
+    }
   }
 
   async logout() {
@@ -58,11 +60,9 @@ export class LoggingView extends React.Component<any, any> {
     this.setState({
       isLoggedIn: this.account.loggedIn,
     });
-    this.disconnectHandler();
   }
 
   render() {
-    console.log('Should display log out button');
     let button = (
       <View style={styles.form}>
         <TouchableHighlight

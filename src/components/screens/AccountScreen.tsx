@@ -1,6 +1,7 @@
 import React from 'react';
 import {LoggingView} from '../LoggingView';
 import Account from '../../Account/Account';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {
   View,
   ScrollView,
@@ -29,9 +30,10 @@ export class AccountScreen extends React.Component<
     };
     this.account = this.props.account;
     this.deviceStatusHandler = this.deviceStatusHandler.bind(this);
+    this.connectionHandler = this.connectionHandler.bind(this);
     this.account.addDeviceStatusHandler(this.deviceStatusHandler);
-    this.connect = this.connect.bind(this);
-    this.disconnect = this.disconnect.bind(this);
+    this.account.addConnectionHandler(this.connectionHandler);
+    this.account.addDisconnectHandler(this.connectionHandler);
   }
 
   componentDidMount() {
@@ -44,13 +46,8 @@ export class AccountScreen extends React.Component<
     });
   }
 
-  connect() {
-    this.setState({
-      isLoggedIn: this.account.isLoggedIn(),
-    });
-  }
-
-  disconnect() {
+  connectionHandler() {
+    console.log('Handling account connection in Account Screen');
     this.setState({
       isLoggedIn: this.account.isLoggedIn(),
     });
@@ -73,7 +70,20 @@ export class AccountScreen extends React.Component<
         }
         view = (
           <View style={styles.width75}>
-            <Text style={styles.labelText}>Status: {stateString}</Text>
+            <Text style={styles.labelText}>
+              Status:
+              {this.state.deviceStatus.state === 'online' && (
+                <Icon name={'ellipse'} color={'green'}></Icon>
+              )}
+              {this.state.deviceStatus.state === 'offline' && (
+                <Icon name={'ellipse'} color={'darkred'}></Icon>
+              )}
+              {stateString}
+              {this.state.deviceStatus.state === 'online' &&
+                this.state.deviceStatus.charging && (
+                  <Icon name={'battery-charging'} color={'yellow'} size={25} />
+                )}
+            </Text>
             <Text style={styles.labelText}>
               Battery: {this.state.deviceStatus.battery}
             </Text>
@@ -99,11 +109,7 @@ export class AccountScreen extends React.Component<
     return (
       <ScrollView style={styles.container}>
         {view}
-        <LoggingView
-          account={this.account}
-          connectHandler={this.connect}
-          disconnectHandler={this.disconnect}
-        />
+        <LoggingView account={this.account} />
       </ScrollView>
     );
   }

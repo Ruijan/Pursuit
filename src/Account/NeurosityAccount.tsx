@@ -13,6 +13,7 @@ class NeurosityAccount {
   public neurosity: NeurosityHeadset;
   private username: string = '';
   private password: string = '';
+  private connecting: boolean = false;
   constructor(neurosity: NeurosityHeadset) {
     this.neurosity = neurosity;
   }
@@ -58,10 +59,25 @@ class NeurosityAccount {
     } catch (err) {
       if (err === 'Already logged in.') {
         console.log(err);
+        this.loggedIn = true;
+        let path = DocumentDirectoryPath + '/neurosity.json';
+        await writeFile(
+          path,
+          JSON.stringify({email: username, password: password}),
+          'utf8',
+        );
       } else {
         throw err;
       }
     }
+  }
+
+  record() {
+    return this.neurosity.record();
+  }
+
+  stopRecording() {
+    this.neurosity.stopRecording();
   }
 
   async logout() {
@@ -69,6 +85,10 @@ class NeurosityAccount {
     await this.neurosity.logout();
     await unlink(path);
     this.loggedIn = false;
+  }
+
+  isConnecting() {
+    return this.connecting;
   }
 }
 

@@ -18,7 +18,19 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
+      - name: Set up S3cmd cli tool
+        uses: s3-actions/s3cmd@v1.4.0
+        with:
+          provider: aws # default is linode
+          region: 'us-east-1'
+          access_key: ${{ secrets.S3_ACCESS_KEY }}
+          secret_key: ${{ secrets.S3_SECRET_KEY }}
+
+      - name: Download release keystore
+        run: |
+         s3cmb get s3://pursuit-github/release.keystore android/release.keystore
 
       - name: Use Node.js 16
         uses: actions/setup-node@v3
