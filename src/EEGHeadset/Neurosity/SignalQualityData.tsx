@@ -1,51 +1,39 @@
-import {SignalQuality} from '@neurosity/sdk/dist/cjs/types/signalQuality';
 import {mean, round} from 'mathjs';
 import {NeuroData} from './NeuroData';
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
 import {Observable} from 'rxjs';
 
 export class SignalQualityData extends NeuroData {
-  get averageSignalQuality(): Array<number> {
-    return this._averageSignalQuality;
-  }
-
-  get averageSignalState(): Array<string> {
-    return this._averageSignalState.map(
-      stateIndex => this.states[round(stateIndex)],
-    );
-  }
-
+  private initialized: boolean = false;
   private states = ['great', 'good', 'bad', 'noContact'];
-  private _averageSignalQuality: Array<number> = [];
-  private _averageSignalState: Array<number> = [];
 
-  constructor(
-    deviceInfo: DeviceInfo,
-    observable: Observable<any>,
-    sessionName: string,
-  ) {
-    super('quality', deviceInfo, observable, sessionName);
+  constructor(deviceInfo: DeviceInfo, observable: Observable<any>) {
+    super('quality', deviceInfo, observable);
   }
 
   setData(data: {[name: string]: any}) {
-    let quality: SignalQuality = data as SignalQuality;
-    let signal: Array<Array<number>> = [];
-    let state: Array<Array<number>> = [];
-    Object.keys(quality).forEach((channel, index) => {
-      this.bufferData[index * 2].push(quality[index].standardDeviation);
-      this.bufferData[index * 2 + 1].push(quality[index].status);
-      signal.push(this.bufferData[index * 2]);
-      state.push(this.bufferData[index * 2 + 1]);
+    let currentTimeStamp = Date.now();
+    this.bufferTimeStamp.push(currentTimeStamp);
+    Object.keys(data).forEach((channel, index) => {
+      if (!this.initialized) {
+        this.bufferData[index * 2] = [];
+        this.bufferData[index * 2 + 1] = [];
+      }
+      this.bufferData[index * 2].push(data[index].standardDeviation);
+      this.bufferData[index * 2 + 1].push(
+        this.states.indexOf(data[index].status),
+      );
     });
-    if (this.bufferData[0].length > this.bufferLength) {
-      this.bufferData.forEach(channel => {
-        channel.slice(1);
+    if (!this.initialized) {
+      this.initialized = true;
+    }
+    if (this.elapsedTime() > this.bufferLength) {
+      this.bufferTimeStamp.shift();
+      this.bufferData.forEach((channel: Array<number>, labelIndex: number) => {
+        this.bufferData[labelIndex].shift();
       });
     }
 
-    this._averageSignalQuality = mean(signal, 0);
-    this._averageSignalState = mean(state, 0);
-    this.saveData(this.bufferData, this.bufferTimeStamp[0], Date.now());
   }
 
   getLabels(): Array<string> {
@@ -55,5 +43,10 @@ export class SignalQualityData extends NeuroData {
       labels.push(channelName + 'State');
     });
     return labels;
+  }
+  init() {
+    this.currentTimeStamp = 0;
+    this.bufferData = Array(2 * this.deviceInfo.channelNames.length);
+    this.bufferTimeStamp = Array(2 * this.deviceInfo.channelNames.length);
   }
 }

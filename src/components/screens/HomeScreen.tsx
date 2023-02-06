@@ -2,7 +2,7 @@ import React from 'react';
 import Account from '../../Account/Account';
 import {LoggingView} from '../LoggingView';
 // @ts-ignore
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import {
   Image,
   Text,
@@ -42,6 +42,7 @@ export class HomeScreen extends React.Component<
     this.account = this.props.account;
     this.connectionHandler = this.connectionHandler.bind(this);
     this.startRecording = this.startRecording.bind(this);
+    this.stopRecording = this.stopRecording.bind(this);
     this.account.addConnectionHandler(this.connectionHandler);
     this.account.addDisconnectHandler(this.connectionHandler);
   }
@@ -82,7 +83,11 @@ export class HomeScreen extends React.Component<
     }
   }
   stopRecording() {
+    console.log('stop recording request');
     this.account.stopRecording();
+    this.setState({
+      recording: false,
+    });
   }
 
   render() {
@@ -90,7 +95,7 @@ export class HomeScreen extends React.Component<
       <View style={styles.errorContainer}>
         <Text>{this.state.error}</Text>
         <TouchableHighlight onPress={() => this.setState({error: ''})}>
-          <Icon name="close" size={30} color="#900" />
+          <Icon name="window-close" size={30} color="#900" />
         </TouchableHighlight>
       </View>
     );
@@ -141,7 +146,7 @@ export class HomeScreen extends React.Component<
           <View style={styles.container}>
             <TouchableHighlight style={styles.submitButton}>
               <View style={styles.button}>
-                <Image source={workIcon} style={styles.width50} />
+                <Icon name={'golf-ball'} color={'white'} size={50}></Icon>
                 <Text style={styles.labelText}>Add shot</Text>
               </View>
             </TouchableHighlight>

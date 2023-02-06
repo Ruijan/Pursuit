@@ -1,52 +1,42 @@
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
 import {Observable} from 'rxjs';
-import {round} from 'mathjs';
 import {NeuroData} from './NeuroData';
 
 export class RawData extends NeuroData {
-  constructor(
-    deviceInfo: DeviceInfo,
-    observable: Observable<any>,
-    sessionName: string,
-  ) {
-    super('raw', deviceInfo, observable, sessionName);
+  initialized: boolean = false;
+  constructor(deviceInfo: DeviceInfo, observable: Observable<any>) {
+    super('raw', deviceInfo, observable);
   }
 
   setData(data: {[name: string]: any}) {
+    let currentTimeStamp = Date.now();
     let info = data.info as {[name: string]: any};
     let rawData = data.data as Array<Array<number>>;
-    let currentTimeStamp = this.bufferTimeStamp;
-    let currentData = this.bufferData;
-    let timestamps = Array.apply(null, Array(rawData[0].length)).map(function (
-      x,
-      timeIndex,
-    ) {
-      return info.startTime + round((timeIndex / info.samplingRate) * 1000);
-    });
-    rawData.map((channel: Array<number>, channelIndex: number) => {
-      currentData[channelIndex] = currentData[channelIndex].concat(channel);
-      currentTimeStamp[channelIndex] =
-        currentTimeStamp[channelIndex].concat(timestamps);
-    });
-    if (
-      currentTimeStamp[0].length >
-      (info.samplingRate / 16) * this.bufferLength
-    ) {
-      currentTimeStamp.forEach(
-        (channel: Array<number>, channelIndex: number) => {
-          currentTimeStamp[channelIndex] = currentTimeStamp[channelIndex].slice(
-            rawData[channelIndex].length,
-          );
-          currentData[channelIndex] = currentData[channelIndex].slice(
-            rawData[channelIndex].length,
-          );
-        },
-      );
+
+    let step = (1 / info.samplingRate) * 1000;
+    for (let index = 0; index < rawData[0].length; index++) {
+      this.bufferTimeStamp.push(info.startTime + Math.round(index * step));
     }
-    this.bufferTimeStamp = currentTimeStamp;
-    this.bufferData = currentData;
+    for (let channel = 0; channel < rawData.length; channel++) {
+      if (!this.initialized) {
+        this.bufferData[channel] = [];
+      }
+      for (let index = 0; index < rawData[channel].length; index++) {
+        this.bufferData[channel].push(rawData[channel][index]);
+      }
+    }
+    if (!this.initialized) {
+      this.initialized = true;
+    }
+
+    if (this.elapsedTime() > this.bufferLength) {
+      this.bufferTimeStamp.splice(0, rawData[0].length);
+      for (let index = 0; index < this.bufferData.length; index++) {
+        this.bufferData[index].splice(0, rawData[index].length);
+      }
+    }
     this.currentTimeStamp = info.startTime;
-    this.saveData(rawData, timestamps, info.startTime);
+    console.log('Elapsed time:', Date.now() - currentTimeStamp);
   }
 
   getLabels(): Array<string> {

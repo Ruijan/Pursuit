@@ -1,6 +1,7 @@
 import React from 'react';
 import {LoggingView} from '../LoggingView';
 import Account from '../../Account/Account';
+// @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   View,

@@ -4,7 +4,9 @@ class Account {
   loggedIn: boolean = false;
   hasInitiated: boolean = false;
   private connectHandler: Array<any> = [];
+  private recordingHandler: Array<any> = [];
   private disconnectHandler: Array<any> = [];
+  private stopRecordingHandler: Array<any> = [];
   private neurosity: NeurosityAccount;
   constructor(neurosity: NeurosityAccount) {
     this.neurosity = neurosity;
@@ -64,13 +66,19 @@ class Account {
 
   async startRecording(activityType: string) {
     if (this.neurosity.loggedIn) {
-      return this.neurosity.record();
+      await this.neurosity.record();
+      this.recordingHandler.forEach(handler => {
+        handler();
+      });
     }
   }
 
   stopRecording() {
     if (this.neurosity.loggedIn) {
       this.neurosity.stopRecording();
+      this.stopRecordingHandler.forEach(handler => {
+        handler();
+      });
     }
   }
 

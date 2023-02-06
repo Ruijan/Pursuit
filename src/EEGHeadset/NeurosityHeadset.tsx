@@ -49,13 +49,13 @@ export class NeurosityHeadset extends Headset {
     });
   }
 
-  record() {
+  async record() {
     if (this.isDeviceConnected()) {
       throw new Error('Device not connected');
     }
     if (!this.recording && this.deviceInfo) {
       this.dataRecorder = new DataRecorder(this.neurosity, this.deviceInfo);
-      this.dataRecorder.record();
+      await this.dataRecorder.record();
     }
   }
 
