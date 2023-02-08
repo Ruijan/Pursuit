@@ -140,6 +140,7 @@ android {
                 keyPassword System.env['SIGNING_KEY_PASSWORD']
             }
             else{
+                project.logger.info('my info message 2')
                 project.logger.info(getenv()['SIGNING_STORE_PASSWORD'])
                 project.logger.info(getenv()['SIGNING_KEY_ALIAS'])
                 project.logger.info(getenv()['SIGNING_KEY_PASSWORD'])
