@@ -20,14 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: S3 Sync
-        uses: ItsKarma/aws-cli@v1.70.0
+
+      - uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
-          args: get s3://pursuit-github/release.keystore android/release.keystore
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
-          AWS_DEFAULT_REGION: "us-east-1"
+          command: cp
+          source: ./android/release.keystore
+          destination: s3://pursuit-github/release.keystore
+          aws_access_key_id: ${{ secrets.S3_ACCESS_KEY }}
+          aws_secret_access_key: ${{ secrets.S3_SECRET_KEY }}
+          aws_region: us-east-1
 
       - name: Use Node.js 16
         uses: actions/setup-node@v3
