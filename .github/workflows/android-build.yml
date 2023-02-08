@@ -24,8 +24,8 @@ jobs:
       - uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: ./android/release.keystore
-          destination: s3://pursuit-github/release.keystore
+          source: s3://pursuit-github/release.keystore
+          destination: ./android/release.keystore
           aws_access_key_id: ${{ secrets.S3_ACCESS_KEY }}
           aws_secret_access_key: ${{ secrets.S3_SECRET_KEY }}
           aws_region: us-east-1
