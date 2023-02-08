@@ -6,113 +6,94 @@
  */
 
 import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import {StatusBar} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {HomeScreen} from './components/screens/HomeScreen';
+import AccountScreen from './components/screens/AccountScreen';
+import LiveScreen from './components/screens/LiveScreen';
+import Account from './Account/Account';
+import NeurosityAccount from './Account/NeurosityAccount';
+import {ErrorHandler} from './ErrorHandler';
+import {NeurosityHeadset} from './EEGHeadset/NeurosityHeadset';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const Stack = createBottomTabNavigator();
+const neurosityAccount = new NeurosityAccount(new NeurosityHeadset());
+const account = new Account(neurosityAccount);
+const errorHandler = new ErrorHandler();
+const AppContext = React.createContext(account);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+class HomeScreenConsumer extends React.Component<{
+  navigation: any;
+  route: any;
+}> {
+  render() {
+    return (
+      <AppContext.Consumer>
+        {account => (
+          <HomeScreen {...{account: account, errorHandler: errorHandler}} />
+        )}
+      </AppContext.Consumer>
+    );
+  }
 }
 
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+class AccountScreenConsumer extends React.Component<{
+  navigation: any;
+  route: any;
+}> {
+  render() {
+    return (
+      <AppContext.Consumer>
+        {account => (
+          <AccountScreen {...{account: account, errorHandler: errorHandler}} />
+        )}
+      </AppContext.Consumer>
+    );
+  }
+}
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
+class App extends React.Component {
+  render() {
+    return (
+      <AppContext.Provider value={account}>
+        <StatusBar barStyle={'dark-content'} />
+        <NavigationContainer
+          theme={{
+            dark: true,
+            colors: {
+              primary: 'rgb(255, 45, 85)',
+              background: '#1A1A1B',
+              card: 'rgb(255, 255, 255)',
+              text: 'rgb(28, 28, 30)',
+              border: 'rgb(199, 199, 204)',
+              notification: 'rgb(255, 69, 58)',
+            },
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+          <Stack.Navigator
+            screenOptions={{
+              tabBarStyle: {backgroundColor: '#1A1A1B'},
+            }}>
+            <Stack.Screen
+              name="Home"
+              component={HomeScreenConsumer}
+              options={{title: 'Welcome'}}
+            />
+            <Stack.Screen
+              name="Live"
+              component={LiveScreen}
+              options={{title: 'Live'}}
+            />
+            <Stack.Screen
+              name="Account"
+              component={AccountScreenConsumer}
+              options={{title: 'Account'}}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AppContext.Provider>
+    );
+  }
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;

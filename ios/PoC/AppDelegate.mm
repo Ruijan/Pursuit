@@ -6,7 +6,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  self.moduleName = @"PoC";
+  self.moduleName = @"Pursuit";
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
