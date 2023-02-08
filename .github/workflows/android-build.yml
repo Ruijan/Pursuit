@@ -20,26 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up S3cmd cli tool
-        uses: s3-actions/s3cmd@v1.4.0
+      - name: S3 Sync
+        uses: ItsKarma/aws-cli@v1.70.0
         with:
-          provider: aws # default is linode
-          region: 'us-east-1'
-          access_key: ${{ secrets.S3_ACCESS_KEY }}
-          secret_key: ${{ secrets.S3_SECRET_KEY }}
-
-      - name: Run S3cmd
-        uses: edjufy/s3cmd-github-action@v1.0.2
-        with:
-          s3cmd_command: 'get s3://pursuit-github/release.keystore android/release.keystore'
-          access_key: ${{ secrets.S3_ACCESS_KEY }}
-          secret_key: ${{ secrets.S3_SECRET_KEY }}
-          host_base: 's3.amazonaws.com'
-          bucket_location: 'us-east-1'
-
-      #- name: Download release keystore
-      #  run: |
-      #   s3cmb get s3://pursuit-github/release.keystore android/release.keystore
+          args: get s3://pursuit-github/release.keystore android/release.keystore
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_KEY }}
+          AWS_DEFAULT_REGION: "us-east-1"
 
       - name: Use Node.js 16
         uses: actions/setup-node@v3
