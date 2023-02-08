@@ -55,7 +55,7 @@ export class MarkerRecorder {
     currentData.markers.push(marker);
     await RNFetchBlob.fs.writeFile(
       filePath,
-      JSON.stringify(currentData),
+      JSON.stringify(currentData, undefined, '\t'),
       'utf8',
     );
     this.isFileCreated = true;

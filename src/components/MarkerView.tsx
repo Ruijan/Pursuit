@@ -41,8 +41,12 @@ export class MarkerView extends React.Component<
     this.updateMarker = this.updateMarker.bind(this);
   }
 
-  getDerivedStateFromProps(props: MarkerViewProps, state: MarkerViewState) {
+  static getDerivedStateFromProps(
+    props: MarkerViewProps,
+    state: MarkerViewState,
+  ) {
     state.marker = props.marker;
+    return state;
   }
 
   updateMarker(name: string, value: any) {

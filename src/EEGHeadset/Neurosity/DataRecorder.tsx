@@ -3,15 +3,11 @@ import 'react-native-get-random-values';
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
 import {Neurosity} from '@neurosity/sdk';
 import {NeuroData} from './NeuroData';
-import {RawData} from './RawData';
 import {ProcessedData} from './ProcessedData';
 import {SignalQualityData} from './SignalQualityData';
 import RNFetchBlob from 'rn-fetch-blob';
-import {
-  PutObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
-import { Marker, MarkerRecorder } from "../../MarkerRecorder";
+import {PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
+import {Marker, MarkerRecorder} from '../../MarkerRecorder';
 // @ts-ignore
 import {AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY} from '@env';
 
