@@ -31,7 +31,7 @@ export class DataRecorder {
     this.type = type;
     this.sessionName =
       this.deviceInfo.deviceNickname + '-' + String(Date.now());
-    this.folderPath = RNFetchBlob.fs.dirs.DownloadDir + '/' + this.sessionName;
+    this.folderPath = RNFetchBlob.fs.dirs.DocumentDir + '/' + this.sessionName;
     let credentials = {
       accessKeyId: AWS_ACCESS_KEY_ID ? AWS_ACCESS_KEY_ID : '',
       secretAccessKey: AWS_SECRET_ACCESS_KEY ? AWS_SECRET_ACCESS_KEY : '',
