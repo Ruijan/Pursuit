@@ -74,10 +74,10 @@ export class AccountScreen extends React.Component<
             <Text style={styles.labelText}>
               Status:
               {this.state.deviceStatus.state === 'online' && (
-                <Icon name={'ellipse'} color={'green'}></Icon>
+                <Icon name={'ellipse'} color={'green'} />
               )}
               {this.state.deviceStatus.state === 'offline' && (
-                <Icon name={'ellipse'} color={'darkred'}></Icon>
+                <Icon name={'ellipse'} color={'darkred'} />
               )}
               {stateString}
               {this.state.deviceStatus.state === 'online' &&

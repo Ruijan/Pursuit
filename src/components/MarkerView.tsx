@@ -64,7 +64,7 @@ export class MarkerView extends React.Component<
 
   render() {
     let markerName = '';
-    let form = undefined;
+    let form;
     if (this.props.marker) {
       markerName = this.props.marker.name;
       form = Object.keys(this.props.marker.properties).map(key => {
