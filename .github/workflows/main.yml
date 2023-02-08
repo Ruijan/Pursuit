@@ -43,6 +43,7 @@ jobs:
     uses: ./.github/workflows/android-build.yml
     with:
       environment: release
+      publish: true
     secrets: inherit
 
 

@@ -95,6 +95,6 @@ jobs:
           appName: Ruijan/Pursuit
           token: ${{secrets.APP_CENTER_TOKEN_ANDROID}}
           group: Testers
-          file: android/app-release.aab
+          file: android/Pursuit.aab
           notifyTesters: true
           debug: false
