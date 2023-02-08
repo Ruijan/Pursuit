@@ -34,12 +34,12 @@ export class ProcessedData extends NeuroData {
       this.bufferData[index].push(data[label]);
       index += 1;
     });
-    if (this.elapsedTime() > this.bufferLength) {
+    /*if (this.elapsedTime() > this.bufferLength) {
       this.bufferTimeStamp.shift();
       this.bufferData.forEach((channel: Array<number>, labelIndex: number) => {
         this.bufferData[labelIndex].shift();
       });
-    }
+    }*/
   }
 
   getLabels(): Array<string> {

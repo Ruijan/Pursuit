@@ -1,4 +1,3 @@
-import {mean, round} from 'mathjs';
 import {NeuroData} from './NeuroData';
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
 import {Observable} from 'rxjs';
@@ -27,13 +26,12 @@ export class SignalQualityData extends NeuroData {
     if (!this.initialized) {
       this.initialized = true;
     }
-    if (this.elapsedTime() > this.bufferLength) {
+    /*if (this.elapsedTime() > this.bufferLength) {
       this.bufferTimeStamp.shift();
       this.bufferData.forEach((channel: Array<number>, labelIndex: number) => {
         this.bufferData[labelIndex].shift();
       });
-    }
-
+    }*/
   }
 
   getLabels(): Array<string> {
@@ -46,7 +44,8 @@ export class SignalQualityData extends NeuroData {
   }
   init() {
     this.currentTimeStamp = 0;
+    this.initialized = false;
     this.bufferData = Array(2 * this.deviceInfo.channelNames.length);
-    this.bufferTimeStamp = Array(2 * this.deviceInfo.channelNames.length);
+    this.bufferTimeStamp = [];
   }
 }

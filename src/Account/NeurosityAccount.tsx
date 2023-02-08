@@ -72,8 +72,8 @@ class NeurosityAccount {
     }
   }
 
-  record() {
-    return this.neurosity.record();
+  record(type: string) {
+    return this.neurosity.record(type);
   }
 
   stopRecording() {

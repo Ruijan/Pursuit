@@ -8,8 +8,12 @@ export class RawData extends NeuroData {
     super('raw', deviceInfo, observable);
   }
 
+  init() {
+    super.init();
+    this.initialized = false;
+  }
+
   setData(data: {[name: string]: any}) {
-    let currentTimeStamp = Date.now();
     let info = data.info as {[name: string]: any};
     let rawData = data.data as Array<Array<number>>;
 
@@ -29,14 +33,13 @@ export class RawData extends NeuroData {
       this.initialized = true;
     }
 
-    if (this.elapsedTime() > this.bufferLength) {
+    /*if (this.elapsedTime() > this.bufferLength) {
       this.bufferTimeStamp.splice(0, rawData[0].length);
       for (let index = 0; index < this.bufferData.length; index++) {
         this.bufferData[index].splice(0, rawData[index].length);
       }
-    }
+    }*/
     this.currentTimeStamp = info.startTime;
-    console.log('Elapsed time:', Date.now() - currentTimeStamp);
   }
 
   getLabels(): Array<string> {

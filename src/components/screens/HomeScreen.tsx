@@ -12,6 +12,9 @@ import {
   StyleSheet,
 } from 'react-native';
 import {ErrorHandler} from '../../ErrorHandler';
+import {DataRecorder} from '../../EEGHeadset/Neurosity/DataRecorder';
+import {MarkerView} from '../MarkerView';
+import {Marker, MarkerBuilder} from '../../MarkerRecorder';
 const drivingRangeIcon = require('../../assets/driving-range-icon.png');
 const workIcon = require('../../assets/work.png');
 const golfIcon = require('../../assets/18golf.png');
@@ -22,6 +25,9 @@ type HomeScreenState = {
   recording: boolean;
   error: string;
   timeSinceRecording: number;
+  showModal: boolean;
+  recorder: DataRecorder | undefined;
+  marker: Marker | undefined;
 };
 
 export class HomeScreen extends React.Component<
@@ -37,12 +43,16 @@ export class HomeScreen extends React.Component<
       recording: false,
       error: '',
       timeSinceRecording: this.props.account.getTimeSinceRecording(),
+      showModal: false,
+      recorder: undefined,
+      marker: undefined,
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
     this.connectionHandler = this.connectionHandler.bind(this);
     this.startRecording = this.startRecording.bind(this);
     this.stopRecording = this.stopRecording.bind(this);
+    this.modalHandler = this.modalHandler.bind(this);
     this.account.addConnectionHandler(this.connectionHandler);
     this.account.addDisconnectHandler(this.connectionHandler);
   }
@@ -70,10 +80,16 @@ export class HomeScreen extends React.Component<
     });
   }
 
-  async startRecording(activityType: string) {
+  modalHandler() {
+    this.setState({
+      showModal: false,
+    });
+  }
+
+  async startRecording(type: string) {
     try {
-      await this.account.startRecording(activityType);
       this.setState({
+        recorder: await this.account.startRecording(type),
         recording: true,
       });
     } catch (error: any) {
@@ -82,11 +98,13 @@ export class HomeScreen extends React.Component<
       });
     }
   }
+
   stopRecording() {
     console.log('stop recording request');
     this.account.stopRecording();
     this.setState({
       recording: false,
+      recorder: undefined,
     });
   }
 
@@ -112,7 +130,7 @@ export class HomeScreen extends React.Component<
           <View style={styles.container}>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.startRecording('DrivingRange')}>
+              onPress={() => this.startRecording('driving_range')}>
               <View style={styles.button}>
                 <Image source={drivingRangeIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Driving Range Session</Text>
@@ -120,7 +138,7 @@ export class HomeScreen extends React.Component<
             </TouchableHighlight>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.startRecording('GolfCourse')}>
+              onPress={() => this.startRecording('outdoor_golf_course')}>
               <View style={styles.button}>
                 <Image source={golfIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Golf course outdoor</Text>
@@ -128,7 +146,7 @@ export class HomeScreen extends React.Component<
             </TouchableHighlight>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.startRecording('Generic')}>
+              onPress={() => this.startRecording('generic')}>
               <View style={styles.button}>
                 <Image source={workIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Generic Activity</Text>
@@ -141,12 +159,25 @@ export class HomeScreen extends React.Component<
     } else if (this.state.isLoggedIn && this.state.recording) {
       view = (
         <ScrollView style={styles.scrollView}>
+          <MarkerView
+            modalVisible={this.state.showModal}
+            marker={this.state.marker}
+            markerRecorder={this.state.recorder}
+            handler={this.modalHandler}
+          />
           {this.state.error && error}
           <Text style={styles.labelText}>Recording for {}</Text>
           <View style={styles.container}>
-            <TouchableHighlight style={styles.submitButton}>
+            <TouchableHighlight
+              style={styles.submitButton}
+              onPress={() =>
+                this.setState({
+                  showModal: true,
+                  marker: MarkerBuilder.buildShot(Date.now(), 0, 0, 0),
+                })
+              }>
               <View style={styles.button}>
-                <Icon name={'golf-ball'} color={'white'} size={50}></Icon>
+                <Icon name={'golf-ball'} color={'white'} size={50} />
                 <Text style={styles.labelText}>Add shot</Text>
               </View>
             </TouchableHighlight>
