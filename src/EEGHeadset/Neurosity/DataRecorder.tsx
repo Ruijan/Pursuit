@@ -10,7 +10,7 @@ import {PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
 import {Marker, MarkerRecorder} from '../../MarkerRecorder';
 // @ts-ignore
 import {AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY} from '@env';
-import { RawData } from "./RawData";
+import {RawData} from './RawData';
 
 export class DataRecorder {
   private data: {[name: string]: NeuroData} = {};
