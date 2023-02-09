@@ -112,8 +112,8 @@ android {
         applicationId "com.pursuit.poc"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 8
-        versionName "0.0.2-dev.5"
+        versionCode 9
+        versionName "0.0.2-dev.6"
     }
 
     splits {
