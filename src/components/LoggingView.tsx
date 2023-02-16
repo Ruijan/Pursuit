@@ -7,11 +7,11 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import Account from '../Account/Account';
+import PursuitAccount from '../Account/PursuitAccount';
 import {ErrorHandler} from '../ErrorHandler';
 
 export class LoggingView extends React.Component<any, any> {
-  private account: Account;
+  private account: PursuitAccount;
   private errorHandler: ErrorHandler;
 
   constructor(props: any) {
@@ -43,7 +43,7 @@ export class LoggingView extends React.Component<any, any> {
       connecting: true,
     });
     try {
-      await this.account.connectNeurosity(
+      await this.account.login(
         this.state.email,
         this.state.password,
       );

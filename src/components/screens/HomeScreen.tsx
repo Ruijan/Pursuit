@@ -1,33 +1,29 @@
 import React from 'react';
-import Account from '../../Account/Account';
+import PursuitAccount from '../../Account/PursuitAccount';
 import {LoggingView} from '../LoggingView';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import {
-  Image,
-  Text,
-  TouchableHighlight,
-  View,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import {Image, Text, TouchableHighlight, View, ScrollView} from 'react-native';
 import {ErrorHandler} from '../../ErrorHandler';
-import {DataRecorder} from '../../EEGHeadset/Neurosity/DataRecorder';
-import {MarkerView} from '../MarkerView';
-import {Marker, MarkerBuilder} from '../../MarkerRecorder';
 const drivingRangeIcon = require('../../assets/driving-range-icon.png');
-const workIcon = require('../../assets/work.png');
 const golfIcon = require('../../assets/18golf.png');
+import styles from '../../styles/Styles';
+// @ts-ignore
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {SessionInfoFormView} from '../SessionInfoFormView';
+import {SessionInfo} from '../../Session';
 
-type HomeScreenProps = {account: Account; errorHandler: ErrorHandler};
+type HomeScreenProps = {
+  account: PursuitAccount;
+  errorHandler: ErrorHandler;
+  navigation: any;
+};
 type HomeScreenState = {
   isLoggedIn: boolean;
-  recording: boolean;
   error: string;
-  timeSinceRecording: number;
   showModal: boolean;
-  recorder: DataRecorder | undefined;
-  marker: Marker | undefined;
+  deviceStatus: any;
+  sessionName: string;
 };
 
 export class HomeScreen extends React.Component<
@@ -35,24 +31,24 @@ export class HomeScreen extends React.Component<
   HomeScreenState
 > {
   private errorHandler: ErrorHandler;
-  private account: Account;
+  private account: PursuitAccount;
+  private navigation: any;
   constructor(props: any) {
     super(props);
     this.state = {
       isLoggedIn: false,
-      recording: false,
       error: '',
-      timeSinceRecording: this.props.account.getTimeSinceRecording(),
       showModal: false,
-      recorder: undefined,
-      marker: undefined,
+      deviceStatus: undefined,
+      sessionName: '',
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
+    this.navigation = this.props.navigation;
     this.connectionHandler = this.connectionHandler.bind(this);
+    this.hideSessionModal = this.hideSessionModal.bind(this);
+    this.showSessionModal = this.showSessionModal.bind(this);
     this.startRecording = this.startRecording.bind(this);
-    this.stopRecording = this.stopRecording.bind(this);
-    this.modalHandler = this.modalHandler.bind(this);
     this.account.addConnectionHandler(this.connectionHandler);
     this.account.addDisconnectHandler(this.connectionHandler);
   }
@@ -64,6 +60,7 @@ export class HomeScreen extends React.Component<
       .then(() => {
         this.setState({
           isLoggedIn: account.isLoggedIn(),
+          deviceStatus: account.getDeviceStatus(),
         });
       })
       .catch(error => {
@@ -74,38 +71,31 @@ export class HomeScreen extends React.Component<
   }
 
   connectionHandler() {
-    console.log('Handling account connection in Home Screen');
     this.setState({
       isLoggedIn: this.account.isLoggedIn(),
     });
   }
 
-  modalHandler() {
+  hideSessionModal() {
     this.setState({
       showModal: false,
+      sessionName: '',
     });
   }
 
-  async startRecording(type: string) {
-    try {
-      this.setState({
-        recorder: await this.account.startRecording(type),
-        recording: true,
-      });
-    } catch (error: any) {
-      this.setState({
-        error: String(error),
-      });
-    }
-  }
-
-  stopRecording() {
-    console.log('stop recording request');
-    this.account.stopRecording();
+  showSessionModal(type: string) {
     this.setState({
-      recording: false,
-      recorder: undefined,
+      sessionName: type,
+      showModal: true,
     });
+  }
+
+  async startRecording(session: SessionInfo) {
+    this.setState({
+      sessionName: '',
+      showModal: false,
+    });
+    this.navigation.navigate('Live', {session: session});
   }
 
   render() {
@@ -123,14 +113,26 @@ export class HomeScreen extends React.Component<
         <LoggingView account={this.account} />
       </ScrollView>
     );
-    if (this.state.isLoggedIn && !this.state.recording) {
+    if (this.state.isLoggedIn) {
       view = (
         <ScrollView style={styles.scrollView}>
           {this.state.error && error}
+          {this.state.showModal && (
+            <SessionInfoFormView
+              name={this.state.sessionName}
+              modalVisible={this.state.showModal}
+              headset={this.account.getHeadset()}
+              creationHandler={this.startRecording}
+              cancelHandler={this.hideSessionModal}
+            />
+          )}
+          <Text style={[styles.title, styles.centeredText]}>
+            Start an activity
+          </Text>
           <View style={styles.container}>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.startRecording('driving_range')}>
+              onPress={() => this.showSessionModal('driving_range')}>
               <View style={styles.button}>
                 <Image source={drivingRangeIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Driving Range Session</Text>
@@ -138,7 +140,7 @@ export class HomeScreen extends React.Component<
             </TouchableHighlight>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.startRecording('outdoor_golf_course')}>
+              onPress={() => this.showSessionModal('outdoor_golf_course')}>
               <View style={styles.button}>
                 <Image source={golfIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Golf course outdoor</Text>
@@ -146,131 +148,17 @@ export class HomeScreen extends React.Component<
             </TouchableHighlight>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.startRecording('generic')}>
+              onPress={() => this.showSessionModal('generic')}>
               <View style={styles.button}>
-                <Image source={workIcon} style={styles.width50} />
-                <Text style={styles.labelText}>Generic Activity</Text>
+                <Ionicons name={'desktop-outline'} color={'white'} size={50} />
+                <Text style={styles.labelText}>Work</Text>
               </View>
             </TouchableHighlight>
           </View>
           <Text style={styles.text}>Previous activities</Text>
         </ScrollView>
       );
-    } else if (this.state.isLoggedIn && this.state.recording) {
-      view = (
-        <ScrollView style={styles.scrollView}>
-          <MarkerView
-            modalVisible={this.state.showModal}
-            marker={this.state.marker}
-            markerRecorder={this.state.recorder}
-            handler={this.modalHandler}
-          />
-          {this.state.error && error}
-          <Text style={styles.labelText}>Recording for {}</Text>
-          <View style={styles.container}>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() =>
-                this.setState({
-                  showModal: true,
-                  marker: MarkerBuilder.buildShot(Date.now(), 0, 0, 0),
-                })
-              }>
-              <View style={styles.button}>
-                <Icon name={'golf-ball'} color={'white'} size={50} />
-                <Text style={styles.labelText}>Add shot</Text>
-              </View>
-            </TouchableHighlight>
-          </View>
-          <View style={styles.container}>
-            <TouchableHighlight
-              style={styles.cancelButton}
-              onPress={() => this.stopRecording()}>
-              <View style={styles.button}>
-                <Text style={styles.labelText}>StopRecording</Text>
-              </View>
-            </TouchableHighlight>
-          </View>
-        </ScrollView>
-      );
     }
     return view;
   }
 }
-
-const styles = StyleSheet.create({
-  width50: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
-  },
-  container: {
-    backgroundColor: '#010101',
-    color: '#fff',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignContent: 'space-around',
-    columnGap: 10,
-    rowGap: 10,
-    marginTop: 10,
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    width: '100%',
-    margin: 'auto',
-    textAlign: 'left',
-  },
-  labelText: {
-    color: '#fff',
-    marginTop: 10,
-    textAlign: 'center',
-    width: '100%',
-  },
-  text: {
-    backgroundColor: '#010101',
-    color: 'white',
-    paddingLeft: 10,
-    marginTop: 30,
-  },
-  submitButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    backgroundColor: '#1E1E1E',
-    width: '40%',
-  },
-  cancelButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    marginTop: 15,
-    backgroundColor: 'darkred',
-    width: '80%',
-  },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    margin: 'auto',
-    textAlign: 'center',
-  },
-
-  scrollView: {
-    height: '100%',
-    backgroundColor: '#010101',
-  },
-  errorContainer: {
-    backgroundColor: 'red',
-    borderRadius: 12,
-    padding: 10,
-    margin: 10,
-    width: '75%',
-    flexDirection: 'row',
-    alignContent: 'space-between',
-  },
-});

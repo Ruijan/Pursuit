@@ -1,5 +1,6 @@
 import {Headset} from './Headset';
 import {NeurosityHeadset} from './NeurosityHeadset';
+import {FakeHeadset} from './FakeHeadest';
 
 export enum HeadsetType {
   Neurosity = 0,
@@ -11,7 +12,15 @@ export class HeadsetFactory {
     if (headsetType === HeadsetType.Neurosity) {
       return new NeurosityHeadset();
     } else {
-      return new Headset();
+      return new FakeHeadset();
     }
+  }
+
+  static buildNeurosityHeadset() {
+    return new NeurosityHeadset();
+  }
+
+  static buildFakeHeadset() {
+    return new FakeHeadset();
   }
 }

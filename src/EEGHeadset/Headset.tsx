@@ -1,26 +1,35 @@
-export class Headset {
+import {DeviceStatus} from '@neurosity/sdk/dist/cjs/types/status';
+import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
+import {DataRecorder} from './DataRecorder';
+
+export abstract class Headset {
+  get deviceStatus(): DeviceStatus | undefined {
+    return this._deviceStatus;
+  }
+
+  get deviceInfo(): DeviceInfo | undefined {
+    return this._deviceInfo;
+  }
+
   get timeSinceRecording(): number {
     return this._timeSinceRecording;
   }
 
-  private _timeSinceRecording: number = 0;
+  protected _timeSinceRecording: number = 0;
   public recording: boolean = false;
+  protected _deviceStatus: DeviceStatus | undefined;
+  protected isGettingLiveStatus: boolean = false;
+  protected deviceStatusHandlers: Array<any> = [];
+  protected dataRecorder: DataRecorder | undefined;
+  protected _deviceInfo: DeviceInfo | undefined;
 
-  async login(parameters: {email: string; password: string}): Promise<void> {
-    console.log('logging in', parameters);
-    return new Promise(resolve => {
-      console.log('returning value');
-      resolve();
-    });
+  addDeviceStatusHandlers(handler: any) {
+    this.deviceStatusHandlers.push(handler);
   }
 
-  async logout(): Promise<void> {
-    return new Promise(resolve => {
-      resolve();
-    });
-  }
+  abstract login(parameters: {email: string; password: string}): Promise<void>;
 
-  isRecording() {
-    return true;
-  }
+  abstract logout(): Promise<void>;
+
+  abstract getLiveInfo(): DeviceStatus | undefined;
 }

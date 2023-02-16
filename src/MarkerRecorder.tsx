@@ -28,20 +28,23 @@ export class MarkerBuilder {
     });
   }
 
-  static buildFakeShot(timestamp: number) {
-    return new Marker('fakeshot', timestamp, {});
+  static buildGenericMarker(label: string, timestamp: number) {
+    return new Marker(label, timestamp, {});
   }
 }
 
 export class MarkerRecorder {
+  set folderPath(value: string) {
+    this._folderPath = value;
+  }
   private isFileCreated: boolean = false;
-  private folderPath: string;
+  private _folderPath: string;
   constructor(folderPath: string) {
-    this.folderPath = folderPath;
+    this._folderPath = folderPath;
   }
 
   async addMarker(marker: Marker) {
-    let filePath = this.folderPath + '/marker.json';
+    let filePath = this._folderPath + '/marker.json';
     let currentData: {markers: Array<any>} = {markers: []};
     if (this.isFileCreated) {
       let markerString = await RNFetchBlob.fs.readFile(filePath, 'utf8');

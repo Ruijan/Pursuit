@@ -11,15 +11,15 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {HomeScreen} from './components/screens/HomeScreen';
 import AccountScreen from './components/screens/AccountScreen';
-import LiveScreen from './components/screens/LiveScreen';
-import Account from './Account/Account';
-import NeurosityAccount from './Account/NeurosityAccount';
+import {LiveScreen} from './components/screens/LiveScreen';
+import PursuitAccount from './Account/PursuitAccount';
 import {ErrorHandler} from './ErrorHandler';
-import {NeurosityHeadset} from './EEGHeadset/NeurosityHeadset';
+// @ts-ignore
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {AccountFactory, AccountType} from './Account/AccountFactory';
 
 const Stack = createBottomTabNavigator();
-const neurosityAccount = new NeurosityAccount(new NeurosityHeadset());
-const account = new Account(neurosityAccount);
+const account = new PursuitAccount(AccountFactory.build(AccountType.Fake));
 const errorHandler = new ErrorHandler();
 const AppContext = React.createContext(account);
 
@@ -31,7 +31,36 @@ class HomeScreenConsumer extends React.Component<{
     return (
       <AppContext.Consumer>
         {account => (
-          <HomeScreen {...{account: account, errorHandler: errorHandler}} />
+          <HomeScreen
+            {...{
+              account: account,
+              errorHandler: errorHandler,
+              route: this.props.route,
+              navigation: this.props.navigation,
+            }}
+          />
+        )}
+      </AppContext.Consumer>
+    );
+  }
+}
+
+class LiveScreenConsumer extends React.Component<{
+  navigation: any;
+  route: any;
+}> {
+  render() {
+    return (
+      <AppContext.Consumer>
+        {account => (
+          <LiveScreen
+            {...{
+              account: account,
+              errorHandler: errorHandler,
+              route: this.props.route,
+              navigation: this.props.navigation,
+            }}
+          />
         )}
       </AppContext.Consumer>
     );
@@ -71,17 +100,35 @@ class App extends React.Component {
             },
           }}>
           <Stack.Navigator
-            screenOptions={{
+            screenOptions={({route}) => ({
               tabBarStyle: {backgroundColor: '#1A1A1B'},
-            }}>
+              tabBarIcon: ({focused, color, size}) => {
+                let iconName;
+
+                if (route.name === 'Home') {
+                  iconName = focused ? 'home' : 'home-outline';
+                } else if (route.name === 'Live') {
+                  iconName = focused ? 'pulse' : 'pulse-sharp';
+                } else if (route.name === 'Account') {
+                  iconName = focused ? 'person' : 'person-outline';
+                }
+
+                // You can return any component that you like here!
+                return <Ionicons name={iconName} size={size} color={color} />;
+              },
+              tabBarActiveTintColor: 'tomato',
+              tabBarInactiveTintColor: 'gray',
+            })}>
             <Stack.Screen
               name="Home"
               component={HomeScreenConsumer}
-              options={{title: 'Welcome'}}
+              options={{
+                title: 'Welcome',
+              }}
             />
             <Stack.Screen
               name="Live"
-              component={LiveScreen}
+              component={LiveScreenConsumer}
               options={{title: 'Live'}}
             />
             <Stack.Screen

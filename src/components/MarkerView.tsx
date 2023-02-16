@@ -1,18 +1,12 @@
 import React from 'react';
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  Pressable,
-  View,
-  TextInput,
-} from 'react-native';
+import {Modal, Text, Pressable, View, TextInput} from 'react-native';
 import {Marker} from '../MarkerRecorder';
 // @ts-ignore
 import Stars from 'react-native-stars';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {DataRecorder} from '../EEGHeadset/Neurosity/DataRecorder';
+import {DataRecorder} from '../EEGHeadset/DataRecorder';
+import modalStyles from '../styles/ModalStyles';
 
 type MarkerViewProps = {
   modalVisible: boolean;
@@ -62,6 +56,10 @@ export class MarkerView extends React.Component<
     console.log('marker added');
   }
 
+  async cancel() {
+    this.submitHandler();
+  }
+
   render() {
     let markerName = '';
     let form;
@@ -70,15 +68,15 @@ export class MarkerView extends React.Component<
       form = Object.keys(this.props.marker.properties).map(key => {
         if (this.props.marker!.properties[key].type === 'number') {
           return (
-            <View key={key} style={styles.inputDiv}>
-              <Text style={styles.textStyle}>
+            <View key={key} style={modalStyles.inputDiv}>
+              <Text style={modalStyles.textStyle}>
                 {this.props.marker!.properties[key].displayName}
               </Text>
               <TextInput
                 onChangeText={text => this.updateMarker(key, text)}
                 value={String(this.props.marker!.properties[key].value)}
                 keyboardType="numeric"
-                style={styles.textStyle}
+                style={modalStyles.textStyle}
               />
             </View>
           );
@@ -92,8 +90,8 @@ export class MarkerView extends React.Component<
           );
         } else if (this.props.marker!.properties[key].type === 'star') {
           return (
-            <View key={key} style={styles.inputDiv}>
-              <Text style={styles.textStyle}>
+            <View key={key} style={modalStyles.inputDiv}>
+              <Text style={modalStyles.textStyle}>
                 {this.props.marker!.properties[key].displayName}
               </Text>
               <Stars
@@ -101,15 +99,20 @@ export class MarkerView extends React.Component<
                 count={5}
                 half={true}
                 starSize={50}
-                fullStar={<Icon name={'star'} style={[styles.myStarStyle]} />}
+                fullStar={
+                  <Icon name={'star'} style={[modalStyles.myStarStyle]} />
+                }
                 emptyStar={
                   <Icon
                     name={'star-outline'}
-                    style={[styles.myStarStyle, styles.myEmptyStarStyle]}
+                    style={[
+                      modalStyles.myStarStyle,
+                      modalStyles.myEmptyStarStyle,
+                    ]}
                   />
                 }
                 halfStar={
-                  <Icon name={'star-half'} style={[styles.myStarStyle]} />
+                  <Icon name={'star-half'} style={[modalStyles.myStarStyle]} />
                 }
               />
             </View>
@@ -121,84 +124,29 @@ export class MarkerView extends React.Component<
       <Modal
         animationType="slide"
         transparent={true}
-        visible={this.props.modalVisible}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <View style={styles.inputDiv}>
-              <Text style={styles.headerStyle}>Adding {markerName}</Text>
+        visible={this.props.modalVisible}
+        style={modalStyles.modalView}>
+        <View style={modalStyles.centeredView}>
+          <View style={modalStyles.modalBlock}>
+            <View style={modalStyles.inputDiv}>
+              <Text style={modalStyles.headerStyle}>Adding {markerName}</Text>
             </View>
             {form}
-            <Pressable
-              onPress={() => this.submit()}
-              style={styles.submitButton}>
-              <Text>Add Marker</Text>
-            </Pressable>
+            <View style={modalStyles.rowContent}>
+              <Pressable
+                onPress={() => this.submit()}
+                style={modalStyles.submitButton}>
+                <Text>Add Marker</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => this.cancel()}
+                style={modalStyles.cancelButton}>
+                <Text>Cancel</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'flex-start',
-    elevation: 5,
-    width: '75%',
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'left',
-  },
-  headerStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 24,
-    marginBottom: 15,
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  myStarStyle: {
-    color: 'yellow',
-    backgroundColor: 'transparent',
-    textShadowColor: 'black',
-    textShadowOffset: {width: 1, height: 1},
-    textShadowRadius: 2,
-  },
-  myEmptyStarStyle: {
-    color: 'white',
-  },
-  submitButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    marginTop: 25,
-    backgroundColor: 'white',
-    width: '100%',
-  },
-  inputDiv: {
-    width: '100%',
-  },
-});

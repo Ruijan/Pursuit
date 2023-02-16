@@ -7,18 +7,26 @@ import {
   ReadDirItem,
 } from 'react-native-fs';
 import {NeurosityHeadset} from '../EEGHeadset/NeurosityHeadset';
+import {Account} from './Account';
+import {Session, SessionInfo} from '../Session';
+import {S3Client} from '@aws-sdk/client-s3';
+import {NeurosityDataRecorder} from '../EEGHeadset/Neurosity/NeurosityDataRecorder';
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values';
+// @ts-ignore
+import {v4 as uuidv4} from 'uuid';
+// @ts-ignore
+import {AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY} from '@env';
 
-class NeurosityAccount {
-  public loggedIn: boolean = false;
-  public neurosity: NeurosityHeadset;
-  private username: string = '';
-  private password: string = '';
-  private connecting: boolean = false;
-  constructor(neurosity: NeurosityHeadset) {
-    this.neurosity = neurosity;
+export class NeurosityAccount extends Account {
+  private neurosityHeadset: NeurosityHeadset;
+  constructor(headset: NeurosityHeadset) {
+    super(headset);
+    this.neurosityHeadset = headset;
   }
 
   async init() {
+    this.connecting = true;
     let result = await readDir(DocumentDirectoryPath);
     let credentialsString = '';
     if (result.length > 0 && this.isLoginFile(result[0], result[0].name)) {
@@ -27,16 +35,18 @@ class NeurosityAccount {
       this.username = userData.username;
       this.password = userData.password;
       try {
-        await this.neurosity.login(userData);
+        await this.headset.login(userData);
       } catch (error) {
         if (error === 'Already logged in.') {
           console.log(error);
         } else {
+          this.connecting = false;
           throw error;
         }
       }
       this.loggedIn = true;
     }
+    this.connecting = false;
   }
 
   private isLoginFile(file: ReadDirItem, name: string) {
@@ -44,8 +54,9 @@ class NeurosityAccount {
   }
 
   async connect(username: string, password: string) {
+    this.connecting = true;
     try {
-      await this.neurosity.login({
+      await this.headset.login({
         email: username,
         password: password,
       });
@@ -67,28 +78,35 @@ class NeurosityAccount {
           'utf8',
         );
       } else {
+        this.connecting = false;
         throw err;
       }
     }
-  }
-
-  record(type: string) {
-    return this.neurosity.record(type);
-  }
-
-  stopRecording() {
-    this.neurosity.stopRecording();
+    this.connecting = false;
   }
 
   async logout() {
     let path = DocumentDirectoryPath + '/neurosity.json';
-    await this.neurosity.logout();
+    await this.headset.logout();
     await unlink(path);
     this.loggedIn = false;
   }
 
-  isConnecting() {
-    return this.connecting;
+  createRecordingSession(sessionInfo: SessionInfo): Session {
+    let credentials = {
+      accessKeyId: AWS_ACCESS_KEY_ID ? AWS_ACCESS_KEY_ID : '',
+      secretAccessKey: AWS_SECRET_ACCESS_KEY ? AWS_SECRET_ACCESS_KEY : '',
+    };
+    let s3client = new S3Client({
+      region: 'us-east-1',
+      credentials: credentials,
+    });
+    let recorder = new NeurosityDataRecorder(
+      this.neurosityHeadset,
+      s3client,
+      sessionInfo.type,
+    );
+    return new Session(sessionInfo, recorder, s3client);
   }
 }
 

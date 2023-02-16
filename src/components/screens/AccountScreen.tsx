@@ -1,6 +1,6 @@
 import React from 'react';
 import {LoggingView} from '../LoggingView';
-import Account from '../../Account/Account';
+import PursuitAccount from '../../Account/PursuitAccount';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {DeviceStatus} from '@neurosity/sdk/dist/cjs/types/status';
 
-type AccountScreenProps = {account: Account};
+type AccountScreenProps = {account: PursuitAccount};
 type AccountScreenState = {
   deviceStatus: DeviceStatus | undefined;
   isLoggedIn: boolean;
@@ -22,7 +22,7 @@ export class AccountScreen extends React.Component<
   AccountScreenProps,
   AccountScreenState
 > {
-  private account: Account;
+  private account: PursuitAccount;
   constructor(props: any) {
     super(props);
     this.state = {
