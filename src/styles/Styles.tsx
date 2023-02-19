@@ -68,7 +68,21 @@ const styles = StyleSheet.create({
     margin: 'auto',
     textAlign: 'center',
   },
-
+  infoCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 4,
+    elevation: 3,
+    padding: 10,
+    backgroundColor: '#1E1E1E',
+    width: '30%',
+  },
+  titleCard: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 15,
+    width: '100%',
+  },
   scrollView: {
     height: '100%',
     backgroundColor: '#010101',

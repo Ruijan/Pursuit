@@ -1,6 +1,6 @@
 import {DeviceStatus} from '@neurosity/sdk/dist/cjs/types/status';
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
-import {DataRecorder} from './DataRecorder';
+import {DataRecorder} from '../Experiment/Recorder/DataRecorder';
 
 export abstract class Headset {
   get deviceStatus(): DeviceStatus | undefined {

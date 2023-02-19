@@ -1,0 +1,103 @@
+{
+  "name": "Test",
+  "duration": "60min",
+  "nbSituations": 2,
+  "nbTrials": [2, 2],
+  "nbRuns": 2,
+  "break": {
+    "start": {
+      "type": "after_previous"
+    },
+    "stop": {
+      "type": "duration",
+      "value": 15
+    }
+  },
+  "calibration": [],
+  "trials": [
+    {
+      "name": "Quiet Shot",
+      "sequence": [
+        {
+          "name": "noise",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_start",
+            "audio_file": "street",
+            "icon": "sound-mute"
+          }
+        },
+        {
+          "name": "quiet shot",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "multiple_or",
+            "value": [
+              {
+                "type": "duration",
+                "value": 15
+              },
+              {
+                "type": "marker",
+                "value": "shot"
+              }
+            ]
+          },
+          "data" : {
+            "start_audio": "quiet_shot"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Noisy Shot",
+      "sequence": [
+        {
+          "name": "noise",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_start",
+            "audio_file": "street"
+          }
+        },
+        {
+          "name": "noise shot",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "multiple_or",
+            "value": [
+              {
+                "type": "duration",
+                "value": 15
+              },
+              {
+                "type": "marker",
+                "value": "shot"
+              }
+            ]
+          },
+          "data": {
+            "start_audio": "noisy_shot",
+            "audio_file": "street"
+          }
+        }
+      ]
+    }
+  ]
+}

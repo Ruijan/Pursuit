@@ -1,22 +1,18 @@
 import {
+  DocumentDirectoryPath,
   readDir,
+  ReadDirItem,
   readFile,
   unlink,
   writeFile,
-  DocumentDirectoryPath,
-  ReadDirItem,
 } from 'react-native-fs';
 import {NeurosityHeadset} from '../EEGHeadset/NeurosityHeadset';
 import {Account} from './Account';
-import {Session, SessionInfo} from '../Session';
-import {S3Client} from '@aws-sdk/client-s3';
-import {NeurosityDataRecorder} from '../EEGHeadset/Neurosity/NeurosityDataRecorder';
-import 'react-native-url-polyfill/auto';
-import 'react-native-get-random-values';
-// @ts-ignore
-import {v4 as uuidv4} from 'uuid';
-// @ts-ignore
-import {AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY} from '@env';
+import {Session, SessionInfo} from '../Experiment/Session';
+import {NeurosityDataRecorder} from '../Experiment/Recorder/NeurosityDataRecorder';
+
+import {ExperimentSession} from '../Experiment/ExperimentSession';
+import {createS3Client} from '../Experiment/CreateS3Client';
 
 export class NeurosityAccount extends Account {
   private neurosityHeadset: NeurosityHeadset;
@@ -93,19 +89,15 @@ export class NeurosityAccount extends Account {
   }
 
   createRecordingSession(sessionInfo: SessionInfo): Session {
-    let credentials = {
-      accessKeyId: AWS_ACCESS_KEY_ID ? AWS_ACCESS_KEY_ID : '',
-      secretAccessKey: AWS_SECRET_ACCESS_KEY ? AWS_SECRET_ACCESS_KEY : '',
-    };
-    let s3client = new S3Client({
-      region: 'us-east-1',
-      credentials: credentials,
-    });
+    let s3client = createS3Client();
     let recorder = new NeurosityDataRecorder(
       this.neurosityHeadset,
       s3client,
       sessionInfo.type,
     );
+    if (sessionInfo.type === 'experiment') {
+      return new ExperimentSession(sessionInfo, recorder, s3client);
+    }
     return new Session(sessionInfo, recorder, s3client);
   }
 }

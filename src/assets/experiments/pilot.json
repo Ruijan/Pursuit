@@ -1,0 +1,171 @@
+{
+  "name": "Focus challenge",
+  "duration": "60min",
+  "nbSituations": 2,
+  "nbTrials": [5, 5],
+  "nbRuns": 6,
+  "break": {
+    "start": {
+      "type": "after_previous"
+    },
+    "stop": {
+      "type": "duration",
+      "value": 30000
+    }
+  },
+  "calibration": [
+    {
+      "name": "Walk",
+      "start": {
+        "type": "marker",
+        "value": "start_walk"
+      },
+      "stop": {
+        "type": "duration",
+        "value": 30
+      },
+      "data": {
+        "start_audio": "walk"
+      }
+    },
+    {
+      "name": "Standing Still",
+      "start": {
+        "type": "marker",
+        "value": "stop_walk"
+      },
+      "stop": {
+        "type": "duration",
+        "value": 30
+      },
+      "data": {
+        "start_audio": "stand_still"
+      }
+    },
+    {
+      "name": "Rest",
+      "start": {
+        "type": "marker",
+        "value": "start_closed_eyes"
+      },
+      "stop": {
+        "type": "duration",
+        "value": 30
+      },
+      "data": {
+        "start_audio": "close_eyes"
+      }
+    }
+  ],
+  "trials": [
+    {
+      "name": "Quiet Shot",
+      "sequence": [
+        {
+          "name": "noise",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_start",
+            "audio_file": "street"
+          }
+        },
+        {
+          "name": "quiet shot",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "multiple_or",
+            "value": [
+              {
+                "type": "duration",
+                "value": 45
+              },
+              {
+                "type": "marker",
+                "value": "shot"
+              }
+            ]
+          },
+          "data": {
+            "start_audio": "quiet_shot"
+          }
+        },
+        {
+          "name": "quiet",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_over"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Noisy Shot",
+      "sequence": [
+        {
+          "name": "noise",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_start",
+            "audio_file": "street"
+          }
+        },
+        {
+          "name": "noise shot",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "multiple_or",
+            "value": [
+              {
+                "type": "duration",
+                "value": 45
+              },
+              {
+                "type": "marker",
+                "value": "shot"
+              }
+            ]
+          },
+          "data": {
+            "start_audio": "noisy_shot",
+            "audio_file": "street"
+          }
+        },
+        {
+          "name": "quiet",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_over"
+          }
+        }
+      ]
+    }
+  ]
+}

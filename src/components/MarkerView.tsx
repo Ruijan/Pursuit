@@ -1,17 +1,17 @@
 import React from 'react';
 import {Modal, Text, Pressable, View, TextInput} from 'react-native';
-import {Marker} from '../MarkerRecorder';
+import {Marker} from '../Experiment/Recorder/MarkerRecorder';
 // @ts-ignore
 import Stars from 'react-native-stars';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {DataRecorder} from '../EEGHeadset/DataRecorder';
 import modalStyles from '../styles/ModalStyles';
+import {Session} from '../Experiment/Session';
 
 type MarkerViewProps = {
   modalVisible: boolean;
   marker: Marker | undefined;
-  markerRecorder: DataRecorder | undefined;
+  session: Session | undefined;
   handler: any;
 };
 
@@ -24,11 +24,11 @@ export class MarkerView extends React.Component<
   MarkerViewState
 > {
   private submitHandler: any;
-  private recorder: DataRecorder | undefined;
+  private session: Session | undefined;
   constructor(props: MarkerViewProps) {
     super(props);
     this.submitHandler = props.handler;
-    this.recorder = this.props.markerRecorder;
+    this.session = this.props.session;
     this.state = {
       marker: this.props.marker,
     };
@@ -52,7 +52,7 @@ export class MarkerView extends React.Component<
 
   async submit() {
     this.submitHandler();
-    await this.recorder!.addMarker(this.state.marker!);
+    await this.session!.addMarker(this.state.marker!);
     console.log('marker added');
   }
 

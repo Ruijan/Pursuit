@@ -1,5 +1,5 @@
 import {Headset} from '../EEGHeadset/Headset';
-import {Session, SessionInfo} from '../Session';
+import {Session, SessionInfo} from '../Experiment/Session';
 
 export abstract class Account {
   get headset(): Headset {

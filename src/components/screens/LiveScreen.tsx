@@ -7,14 +7,16 @@ import {
 } from 'react-native';
 import React from 'react';
 import {MarkerView} from '../MarkerView';
-import {Marker, MarkerBuilder} from '../../MarkerRecorder';
+import {Marker, MarkerBuilder} from '../../Experiment/Recorder/MarkerRecorder';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/FontAwesome5';
 // @ts-ignore
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PursuitAccount from '../../Account/PursuitAccount';
 import {ErrorHandler} from '../../ErrorHandler';
-import {Session} from '../../Session';
+import {Session} from '../../Experiment/Session';
+import {ExperimentView} from '../ExperimentView';
+import {ExperimentSession} from '../../Experiment/ExperimentSession';
 
 type LiveScreenProps = {
   account: PursuitAccount;
@@ -28,6 +30,9 @@ type LiveScreenState = {
   marker: Marker | undefined;
   deviceStatus: any;
   stoppingRecording: boolean;
+  recordingTime: number;
+  startingRecording: boolean;
+  session: Session;
 };
 
 export class LiveScreen extends React.Component<
@@ -38,13 +43,6 @@ export class LiveScreen extends React.Component<
   private session: Session;
   constructor(props: any) {
     super(props);
-    this.state = {
-      error: '',
-      showModal: false,
-      marker: undefined,
-      deviceStatus: undefined,
-      stoppingRecording: false,
-    };
     this.account = this.props.account;
     if (
       !this.props.route.params ||
@@ -55,15 +53,42 @@ export class LiveScreen extends React.Component<
     this.session = this.account.headsetAccount.createRecordingSession(
       this.props.route.params.session,
     );
+    this.state = {
+      error: '',
+      showModal: false,
+      marker: undefined,
+      deviceStatus: undefined,
+      stoppingRecording: false,
+      recordingTime: 0,
+      startingRecording: true,
+      session: this.session,
+    };
+    this.modalHandler = this.modalHandler.bind(this);
+    this.startHandler = this.startHandler.bind(this);
+    this.updateHandler = this.updateHandler.bind(this);
+    this.session.addStartHandler(this.startHandler);
+    this.session.addStateUpdateHandler(this.updateHandler);
     this.session.startRecording().catch(error => {
       throw error;
     });
-    this.modalHandler = this.modalHandler.bind(this);
   }
 
   modalHandler() {
     this.setState({
       showModal: false,
+    });
+  }
+
+  updateHandler() {
+    this.setState({
+      recordingTime: this.session.recorder.getTimeSinceRecording(),
+      session: this.session,
+    });
+  }
+
+  startHandler() {
+    this.setState({
+      startingRecording: false,
     });
   }
 
@@ -92,11 +117,16 @@ export class LiveScreen extends React.Component<
         <MarkerView
           modalVisible={this.state.showModal}
           marker={this.state.marker}
-          markerRecorder={this.session.recorder}
+          session={this.session}
           handler={this.modalHandler}
         />
         {this.state.error && error}
-        <Text style={styles.labelText}>Recording for {}</Text>
+        {this.state.session instanceof ExperimentSession && (
+          <ExperimentView session={this.session} />
+        )}
+        <Text style={styles.labelText}>
+          Recording for {this.state.recordingTime}s
+        </Text>
         <View style={styles.container}>
           <TouchableHighlight
             style={styles.submitButton}

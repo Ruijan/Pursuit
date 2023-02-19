@@ -11,7 +11,8 @@ import styles from '../../styles/Styles';
 // @ts-ignore
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SessionInfoFormView} from '../SessionInfoFormView';
-import {SessionInfo} from '../../Session';
+import {SessionInfo} from '../../Experiment/Session';
+import {experiments} from '../../assets/experiments';
 
 type HomeScreenProps = {
   account: PursuitAccount;
@@ -23,6 +24,7 @@ type HomeScreenState = {
   error: string;
   showModal: boolean;
   deviceStatus: any;
+  sessionType: string;
   sessionName: string;
 };
 
@@ -40,6 +42,7 @@ export class HomeScreen extends React.Component<
       error: '',
       showModal: false,
       deviceStatus: undefined,
+      sessionType: '',
       sessionName: '',
     };
     this.errorHandler = this.props.errorHandler;
@@ -79,19 +82,21 @@ export class HomeScreen extends React.Component<
   hideSessionModal() {
     this.setState({
       showModal: false,
-      sessionName: '',
+      sessionType: '',
     });
   }
 
-  showSessionModal(type: string) {
+  showSessionModal(type: string, name: string) {
     this.setState({
-      sessionName: type,
+      sessionType: type,
+      sessionName: name,
       showModal: true,
     });
   }
 
   async startRecording(session: SessionInfo) {
     this.setState({
+      sessionType: '',
       sessionName: '',
       showModal: false,
     });
@@ -114,11 +119,27 @@ export class HomeScreen extends React.Component<
       </ScrollView>
     );
     if (this.state.isLoggedIn) {
+      let experimentButtons = experiments.map(experiment => {
+        return (
+          <TouchableHighlight
+            style={styles.submitButton}
+            key={experiment.name}
+            onPress={() =>
+              this.showSessionModal('experiment', experiment.name)
+            }>
+            <View style={styles.button}>
+              <Text style={styles.labelText}>{experiment.name}</Text>
+              <Text style={styles.labelText}>{experiment.duration}</Text>
+            </View>
+          </TouchableHighlight>
+        );
+      });
       view = (
         <ScrollView style={styles.scrollView}>
           {this.state.error && error}
           {this.state.showModal && (
             <SessionInfoFormView
+              type={this.state.sessionType}
               name={this.state.sessionName}
               modalVisible={this.state.showModal}
               headset={this.account.getHeadset()}
@@ -132,7 +153,7 @@ export class HomeScreen extends React.Component<
           <View style={styles.container}>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.showSessionModal('driving_range')}>
+              onPress={() => this.showSessionModal('driving_range', '')}>
               <View style={styles.button}>
                 <Image source={drivingRangeIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Driving Range Session</Text>
@@ -140,7 +161,7 @@ export class HomeScreen extends React.Component<
             </TouchableHighlight>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.showSessionModal('outdoor_golf_course')}>
+              onPress={() => this.showSessionModal('outdoor_golf_course', '')}>
               <View style={styles.button}>
                 <Image source={golfIcon} style={styles.width50} />
                 <Text style={styles.labelText}>Golf course outdoor</Text>
@@ -148,13 +169,17 @@ export class HomeScreen extends React.Component<
             </TouchableHighlight>
             <TouchableHighlight
               style={styles.submitButton}
-              onPress={() => this.showSessionModal('generic')}>
+              onPress={() => this.showSessionModal('generic', '')}>
               <View style={styles.button}>
                 <Ionicons name={'desktop-outline'} color={'white'} size={50} />
                 <Text style={styles.labelText}>Work</Text>
               </View>
             </TouchableHighlight>
           </View>
+          <Text style={[styles.title, styles.centeredText]}>
+            Start an experiment
+          </Text>
+          <View style={styles.container}>{experimentButtons}</View>
           <Text style={styles.text}>Previous activities</Text>
         </ScrollView>
       );

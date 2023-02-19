@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import modalStyles from '../styles/ModalStyles';
-import {SessionInfo} from '../Session';
+import {SessionInfo} from '../Experiment/Session';
 import {Headset} from '../EEGHeadset/Headset';
 import {Dropdown} from 'react-native-element-dropdown';
 
@@ -32,6 +32,7 @@ const clubType = [
 type SessionInfoFormViewProps = {
   modalVisible: boolean;
   name: string;
+  type: string;
   headset: Headset;
   creationHandler: any;
   cancelHandler: any;
@@ -53,13 +54,13 @@ export class SessionInfoFormView extends React.Component<
     super(props);
     this.state = {
       session: {
-        name: '',
+        name: this.props.name,
         startTime: Date.now(),
         subject: '',
         device: this.props.headset.deviceInfo!.deviceNickname,
         club: clubType[0].value,
         info: '',
-        type: this.props.name,
+        type: this.props.type,
       },
       focus: false,
     };
