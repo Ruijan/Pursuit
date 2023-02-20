@@ -1,4 +1,10 @@
-import {ScrollView, Text, TouchableHighlight, View} from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableHighlight,
+  View,
+} from 'react-native';
 import React from 'react';
 import {MarkerView} from '../MarkerView';
 import {Marker, MarkerBuilder} from '../../Experiment/Recorder/MarkerRecorder';
@@ -29,6 +35,7 @@ type LiveScreenState = {
   startingRecording: boolean;
   expectedMarker: string;
   session: Session;
+  sessionState: string;
 };
 
 export class LiveScreen extends React.Component<
@@ -59,12 +66,15 @@ export class LiveScreen extends React.Component<
       startingRecording: true,
       session: this.session,
       expectedMarker: '',
+      sessionState: '',
     };
     this.modalHandler = this.modalHandler.bind(this);
     this.startHandler = this.startHandler.bind(this);
+    this.stopHandler = this.stopHandler.bind(this);
     this.updateHandler = this.updateHandler.bind(this);
     this.session.addStartHandler(this.startHandler);
     this.session.addStateUpdateHandler(this.updateHandler);
+    this.session.addStopHandler(this.stopHandler);
     this.session.startRecording().catch(error => {
       throw error;
     });
@@ -84,7 +94,14 @@ export class LiveScreen extends React.Component<
         this.state.session instanceof ExperimentSession
           ? this.session.expectedMarker
           : '',
+      sessionState:
+        this.state.session instanceof ExperimentSession
+          ? this.session.state
+          : '',
     });
+    if (this.state.sessionState === 'done') {
+      this.props.navigation.goBack();
+    }
   }
 
   startHandler() {
@@ -93,15 +110,16 @@ export class LiveScreen extends React.Component<
     });
   }
 
-  async stopRecording() {
+  stopHandler() {
     this.setState({
       stoppingRecording: true,
     });
+  }
+
+  async stopRecording() {
+    console.log('From Live screen: stop recording');
     await this.session.stopRecording();
-    this.setState({
-      stoppingRecording: false,
-    });
-    this.props.navigation.goBack();
+    //this.props.navigation.goBack();
   }
 
   render() {
@@ -113,6 +131,14 @@ export class LiveScreen extends React.Component<
         </TouchableHighlight>
       </View>
     );
+    if (this.state.stoppingRecording) {
+      return (
+        <ScrollView style={styles.scrollView}>
+          <ActivityIndicator size="large" color="#199FDD" />
+          <Text style={styles.labelText}>Uploading data</Text>
+        </ScrollView>
+      );
+    }
     return (
       <ScrollView style={styles.scrollView}>
         <MarkerView

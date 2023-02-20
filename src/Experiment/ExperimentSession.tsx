@@ -15,6 +15,7 @@ enum ExperimentState {
   CALIBRATING = 'calibration',
   TRIAL = 'trial',
   BREAK = 'break',
+  STOP = 'stop',
   DONE = 'done',
 }
 
@@ -191,7 +192,9 @@ export class ExperimentSession extends Session {
         'start_run_' +
           String(this._currentRun) +
           '_trial_' +
-          String(currentTrial),
+          String(currentTrial) +
+          '_' +
+          this.currentSituation,
         Date.now(),
       ),
     );
@@ -223,12 +226,13 @@ export class ExperimentSession extends Session {
 
   private async runBreak() {
     if (this._currentRun >= this.experiment.nbRuns) {
-      await this.stopRecording();
+      this.stopRecording().then();
       return;
     }
     if (this.trialState === TrialState.WAITING) {
       if (this.experiment.break.stop.type === 'duration') {
         this.previousTimestamp = Date.now();
+        this.updateTimerHandler.forEach(handler => handler());
       }
       this.trialState = TrialState.RUNNING;
     } else if (this.trialState === TrialState.RUNNING) {
@@ -248,6 +252,10 @@ export class ExperimentSession extends Session {
     );
 
     if (this._currentTotalTrial >= totalTrials) {
+      this.currentSound.forEach(sound => this.sounds[sound].stop());
+      this.playAudioFile('break_time', false);
+      this._previousStepName = this._currentStepName;
+      this._currentStepName = 'break';
       this._state = ExperimentState.BREAK;
       this._currentRun += 1;
       this.initTrialCount();
@@ -256,6 +264,7 @@ export class ExperimentSession extends Session {
         0,
       );
       this.currentTrialStep = 0;
+      this.updateStateHandler.forEach(handler => handler());
       return;
     }
     let currentSituation = this.experiment.trials[this.currentSituation];
@@ -424,13 +433,19 @@ export class ExperimentSession extends Session {
   }
 
   async stopRecording(): Promise<void> {
-    this._state = ExperimentState.DONE;
+    this.stopHandler.forEach(handler => handler());
     clearInterval(this.intervalCallback);
+    this._state = ExperimentState.STOP;
+    this.updateStateHandler.forEach(handler => handler());
+
     Object.keys(this.sounds).forEach(name => {
       this.sounds[name].stop();
       this.sounds[name].release();
     });
-    await super.stopRecording();
+    this.recorder.stopRecording().then(() => {
+      this._state = ExperimentState.DONE;
+      this.updateStateHandler.forEach(handler => handler());
+    });
   }
 }
 

@@ -82,6 +82,7 @@ export class Session {
   }
 
   async stopRecording() {
+    console.log('Stop recording session');
     await this.recorder.stopRecording();
     this.stopHandler.forEach(handler => handler());
   }

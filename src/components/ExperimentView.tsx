@@ -74,7 +74,6 @@ export class ExperimentView extends React.Component<
       run: this.session.currentRun,
       maxRun: this.session.maxRuns,
     });
-    console.log(convertStringToLabel(this.session.markerExpected));
   }
 
   updateTimeState() {
