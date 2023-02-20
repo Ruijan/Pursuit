@@ -14,7 +14,6 @@ import {
 import {ErrorHandler} from '../../ErrorHandler';
 
 const drivingRangeIcon = require('../../assets/driving-range-icon.png');
-const golfIcon = require('../../assets/18golf.png');
 import styles from '../../styles/Styles';
 // @ts-ignore
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -26,7 +25,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import {createS3Client} from '../../Experiment/CreateS3Client';
-import { convertStringToLabel } from "../../utils";
+import {convertStringToLabel} from '../../utils';
 
 type HomeScreenProps = {
   account: PursuitAccount;
