@@ -52,9 +52,7 @@ export class MarkerView extends React.Component<
 
   async submit() {
     this.submitHandler();
-    console.log('Adding marker');
     await this.session!.addMarker(this.state.marker!);
-    console.log('marker added');
   }
 
   async cancel() {

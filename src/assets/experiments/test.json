@@ -1,8 +1,8 @@
 {
-  "name": "Test",
+  "name": "test_focus_challenge",
   "duration": "60min",
   "nbSituations": 2,
-  "nbTrials": [2, 2],
+  "nbTrials": [3, 3],
   "nbRuns": 2,
   "break": {
     "start": {
@@ -10,10 +10,56 @@
     },
     "stop": {
       "type": "duration",
-      "value": 15
+      "value": 30
     }
   },
-  "calibration": [],
+  "calibration": [
+    {
+      "name": "walk",
+      "start": {
+        "type": "marker",
+        "value": "start_walk"
+      },
+      "stop": {
+        "type": "duration",
+        "value": 15
+      },
+      "data": {
+        "start_audio": "walk",
+        "icon": "walk"
+      }
+    },
+    {
+      "name": "stand_still",
+      "start": {
+        "type": "marker",
+        "value": "stop_walk"
+      },
+      "stop": {
+        "type": "duration",
+        "value": 15
+      },
+      "data": {
+        "start_audio": "stand_still",
+        "icon": "man"
+      }
+    },
+    {
+      "name": "rest",
+      "start": {
+        "type": "marker",
+        "value": "start_closed_eyes"
+      },
+      "stop": {
+        "type": "duration",
+        "value": 15
+      },
+      "data": {
+        "start_audio": "close_eyes",
+        "icon": "eye-off"
+      }
+    }
+  ],
   "trials": [
     {
       "name": "quiet_shot",
@@ -30,8 +76,8 @@
           "data": {
             "start_audio": "trial_start",
             "audio_file": "street",
-            "icon": "ios-volume-high",
-            "loop": true
+            "loop": true,
+            "icon": "ios-volume-high"
           }
         },
         {
@@ -44,7 +90,7 @@
             "value": [
               {
                 "type": "duration",
-                "value": 15
+                "value": 45
               },
               {
                 "type": "marker",
@@ -52,9 +98,23 @@
               }
             ]
           },
-          "data" : {
+          "data": {
             "start_audio": "quiet_shot",
             "icon": "md-golf-sharp"
+          }
+        },
+        {
+          "name": "quiet",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_over",
+            "icon": "volume-mute-sharp"
           }
         }
       ]
@@ -88,7 +148,7 @@
             "value": [
               {
                 "type": "duration",
-                "value": 15
+                "value": 45
               },
               {
                 "type": "marker",
@@ -101,6 +161,20 @@
             "audio_file": "street",
             "loop": true,
             "icon": "md-golf-sharp"
+          }
+        },
+        {
+          "name": "quiet",
+          "start": {
+            "type": "after_previous"
+          },
+          "stop": {
+            "type": "duration",
+            "value": 15
+          },
+          "data": {
+            "start_audio": "trial_over",
+            "icon": "volume-mute-sharp"
           }
         }
       ]

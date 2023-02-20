@@ -171,7 +171,7 @@ export class HomeScreen extends React.Component<
     if (this.state.isLoggedIn) {
       let experimentsView = (
         <View style={[styles.container]}>
-          <ActivityIndicator size="large" color="#00ff00" />
+          <ActivityIndicator size="large" color="#199FDD" />
         </View>
       );
       let experimentButtons = this.state.experiments.map(experiment => {

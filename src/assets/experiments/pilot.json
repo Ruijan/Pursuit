@@ -10,7 +10,7 @@
     },
     "stop": {
       "type": "duration",
-      "value": 30000
+      "value": 300
     }
   },
   "calibration": [
