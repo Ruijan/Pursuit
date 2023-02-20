@@ -43,10 +43,7 @@ export class LoggingView extends React.Component<any, any> {
       connecting: true,
     });
     try {
-      await this.account.login(
-        this.state.email,
-        this.state.password,
-      );
+      await this.account.login(this.state.email, this.state.password);
     } catch (error) {
       this.setState({
         error: String(error),

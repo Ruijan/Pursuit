@@ -1,9 +1,4 @@
-import {
-  ScrollView,
-  Text,
-  TouchableHighlight,
-  View,
-} from 'react-native';
+import {ScrollView, Text, TouchableHighlight, View} from 'react-native';
 import React from 'react';
 import {MarkerView} from '../MarkerView';
 import {Marker, MarkerBuilder} from '../../Experiment/Recorder/MarkerRecorder';
