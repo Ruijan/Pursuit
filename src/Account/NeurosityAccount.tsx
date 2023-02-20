@@ -1,24 +1,28 @@
 import {
+  DocumentDirectoryPath,
   readDir,
+  ReadDirItem,
   readFile,
   unlink,
   writeFile,
-  DocumentDirectoryPath,
-  ReadDirItem,
 } from 'react-native-fs';
 import {NeurosityHeadset} from '../EEGHeadset/NeurosityHeadset';
+import {Account} from './Account';
+import {Session, SessionInfo} from '../Experiment/Session';
+import {NeurosityDataRecorder} from '../Experiment/Recorder/NeurosityDataRecorder';
 
-class NeurosityAccount {
-  public loggedIn: boolean = false;
-  public neurosity: NeurosityHeadset;
-  private username: string = '';
-  private password: string = '';
-  private connecting: boolean = false;
-  constructor(neurosity: NeurosityHeadset) {
-    this.neurosity = neurosity;
+import {ExperimentSession} from '../Experiment/ExperimentSession';
+import {createS3Client} from '../Experiment/CreateS3Client';
+
+export class NeurosityAccount extends Account {
+  private neurosityHeadset: NeurosityHeadset;
+  constructor(headset: NeurosityHeadset) {
+    super(headset);
+    this.neurosityHeadset = headset;
   }
 
   async init() {
+    this.connecting = true;
     let result = await readDir(DocumentDirectoryPath);
     let credentialsString = '';
     if (result.length > 0 && this.isLoginFile(result[0], result[0].name)) {
@@ -27,16 +31,18 @@ class NeurosityAccount {
       this.username = userData.username;
       this.password = userData.password;
       try {
-        await this.neurosity.login(userData);
+        await this.headset.login(userData);
       } catch (error) {
         if (error === 'Already logged in.') {
           console.log(error);
         } else {
+          this.connecting = false;
           throw error;
         }
       }
       this.loggedIn = true;
     }
+    this.connecting = false;
   }
 
   private isLoginFile(file: ReadDirItem, name: string) {
@@ -44,8 +50,9 @@ class NeurosityAccount {
   }
 
   async connect(username: string, password: string) {
+    this.connecting = true;
     try {
-      await this.neurosity.login({
+      await this.headset.login({
         email: username,
         password: password,
       });
@@ -67,28 +74,31 @@ class NeurosityAccount {
           'utf8',
         );
       } else {
+        this.connecting = false;
         throw err;
       }
     }
-  }
-
-  record(type: string) {
-    return this.neurosity.record(type);
-  }
-
-  stopRecording() {
-    this.neurosity.stopRecording();
+    this.connecting = false;
   }
 
   async logout() {
     let path = DocumentDirectoryPath + '/neurosity.json';
-    await this.neurosity.logout();
+    await this.headset.logout();
     await unlink(path);
     this.loggedIn = false;
   }
 
-  isConnecting() {
-    return this.connecting;
+  createRecordingSession(sessionInfo: SessionInfo): Session {
+    let s3client = createS3Client();
+    let recorder = new NeurosityDataRecorder(
+      this.neurosityHeadset,
+      s3client,
+      sessionInfo.type,
+    );
+    if (sessionInfo.type === 'experiment') {
+      return new ExperimentSession(sessionInfo, recorder, s3client);
+    }
+    return new Session(sessionInfo, recorder, s3client);
   }
 }
 

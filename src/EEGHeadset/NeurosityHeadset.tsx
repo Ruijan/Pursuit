@@ -1,40 +1,34 @@
 import {Headset} from './Headset';
 import {Neurosity} from '@neurosity/sdk';
 import {DeviceStatus} from '@neurosity/sdk/dist/cjs/types/status';
-import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
-import {DataRecorder} from './Neurosity/DataRecorder';
 
 export class NeurosityHeadset extends Headset {
-  private neurosity: Neurosity;
-  private deviceInfo: DeviceInfo | undefined;
-  public deviceStatus: DeviceStatus | undefined;
-  private isGettingLiveStatus: boolean = false;
-  private deviceStatusHandlers: Array<any> = [];
-  private dataRecorder: DataRecorder | undefined;
+  private _neurosity: Neurosity;
 
   constructor() {
     super();
-    this.neurosity = new Neurosity();
+    this._neurosity = new Neurosity();
   }
 
-  addDeviceStatusHandlers(handler: any) {
-    this.deviceStatusHandlers.push(handler);
+  get neurosity(): Neurosity {
+    return this._neurosity;
   }
 
   async login(parameters: {email: string; password: string}): Promise<void> {
     console.log('log in with', parameters);
-    await this.neurosity.login(parameters);
+    await this._neurosity.login(parameters);
+    await this.getLiveInfo();
     console.log('connected');
-    return this.neurosity.getDevices().then(device => {
-      this.deviceInfo = device[0];
+    return this._neurosity.getDevices().then(device => {
+      this._deviceInfo = device[0];
     });
   }
 
-  getLiveInfo() {
+  getLiveInfo(): DeviceStatus | undefined {
     if (!this.isGettingLiveStatus) {
       this.isGettingLiveStatus = true;
-      this.neurosity.status().subscribe(status => {
-        this.deviceStatus = status;
+      this._neurosity.status().subscribe(status => {
+        this._deviceStatus = status;
         this.deviceStatusHandlers.forEach(handler => {
           handler();
         });
@@ -44,49 +38,14 @@ export class NeurosityHeadset extends Headset {
   }
 
   async logout(): Promise<void> {
-    return this.neurosity.logout().then(() => {
+    return this._neurosity.logout().then(() => {
       this.dataRecorder?.stopRecording();
     });
   }
 
-  async record(type: string) {
-    if (this.isDeviceConnected()) {
-      throw new Error('Device not connected');
-    }
-    if (!this.recording && this.deviceInfo) {
-      this.dataRecorder = new DataRecorder(
-        this.neurosity,
-        this.deviceInfo,
-        type,
-      );
-      await this.dataRecorder.record();
-      return this.dataRecorder;
-    }
-  }
-
-  stopRecording() {
-    if (!this.recording && this.dataRecorder) {
-      this.dataRecorder.stopRecording();
-    }
-  }
-
-  isRecording() {
-    if (this.dataRecorder) {
-      return this.dataRecorder.isRecording();
-    }
-    return false;
-  }
-
-  get timeSinceRecording(): number {
-    if (this.dataRecorder) {
-      return this.dataRecorder.getTimeSinceRecording();
-    }
-    return 0;
-  }
-
   public isDeviceConnected() {
     return (
-      !this.deviceInfo ||
+      !this._deviceInfo ||
       !this.deviceStatus ||
       (this.deviceStatus && this.deviceStatus.state !== 'online')
     );

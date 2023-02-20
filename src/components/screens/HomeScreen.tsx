@@ -1,5 +1,5 @@
 import React from 'react';
-import Account from '../../Account/Account';
+import PursuitAccount from '../../Account/PursuitAccount';
 import {LoggingView} from '../LoggingView';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -9,25 +9,38 @@ import {
   TouchableHighlight,
   View,
   ScrollView,
-  StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {ErrorHandler} from '../../ErrorHandler';
-import {DataRecorder} from '../../EEGHeadset/Neurosity/DataRecorder';
-import {MarkerView} from '../MarkerView';
-import {Marker, MarkerBuilder} from '../../MarkerRecorder';
-const drivingRangeIcon = require('../../assets/driving-range-icon.png');
-const workIcon = require('../../assets/work.png');
-const golfIcon = require('../../assets/18golf.png');
 
-type HomeScreenProps = {account: Account; errorHandler: ErrorHandler};
+const drivingRangeIcon = require('../../assets/driving-range-icon.png');
+import styles from '../../styles/Styles';
+// @ts-ignore
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {SessionInfoFormView} from '../SessionInfoFormView';
+import {SessionInfo} from '../../Experiment/Session';
+import {
+  GetObjectCommand,
+  ListObjectsCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import {createS3Client} from '../../Experiment/CreateS3Client';
+import {convertStringToLabel} from '../../utils';
+
+type HomeScreenProps = {
+  account: PursuitAccount;
+  errorHandler: ErrorHandler;
+  navigation: any;
+};
 type HomeScreenState = {
   isLoggedIn: boolean;
-  recording: boolean;
   error: string;
-  timeSinceRecording: number;
   showModal: boolean;
-  recorder: DataRecorder | undefined;
-  marker: Marker | undefined;
+  deviceStatus: any;
+  sessionType: string;
+  sessionName: string;
+  experiments: Array<any>;
+  loading: boolean;
 };
 
 export class HomeScreen extends React.Component<
@@ -35,26 +48,62 @@ export class HomeScreen extends React.Component<
   HomeScreenState
 > {
   private errorHandler: ErrorHandler;
-  private account: Account;
+  private account: PursuitAccount;
+  private navigation: any;
+  private client: S3Client;
+
   constructor(props: any) {
     super(props);
     this.state = {
       isLoggedIn: false,
-      recording: false,
       error: '',
-      timeSinceRecording: this.props.account.getTimeSinceRecording(),
       showModal: false,
-      recorder: undefined,
-      marker: undefined,
+      deviceStatus: undefined,
+      sessionType: '',
+      sessionName: '',
+      experiments: [],
+      loading: false,
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
+    this.navigation = this.props.navigation;
     this.connectionHandler = this.connectionHandler.bind(this);
+    this.hideSessionModal = this.hideSessionModal.bind(this);
+    this.showSessionModal = this.showSessionModal.bind(this);
     this.startRecording = this.startRecording.bind(this);
-    this.stopRecording = this.stopRecording.bind(this);
-    this.modalHandler = this.modalHandler.bind(this);
     this.account.addConnectionHandler(this.connectionHandler);
     this.account.addDisconnectHandler(this.connectionHandler);
+    this.client = createS3Client();
+    this.loadExperiments();
+  }
+
+  private loadExperiments() {
+    let params = {
+      Bucket: 'pursuit-experiments',
+    };
+    try {
+      this.client.send(new ListObjectsCommand(params)).then(results => {
+        results.Contents?.forEach(async file => {
+          let getParams = {
+            Bucket: 'pursuit-experiments',
+            Key: file.Key,
+          };
+          let fileData = await this.client.send(
+            new GetObjectCommand(getParams),
+          );
+          let currentExperiments = this.state.experiments;
+          currentExperiments.push(
+            JSON.parse(await fileData.Body!.transformToString()),
+          );
+          this.setState({
+            experiments: currentExperiments,
+            loading: currentExperiments.length === results.Contents!.length - 1,
+          });
+        });
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   componentDidMount() {
@@ -64,6 +113,7 @@ export class HomeScreen extends React.Component<
       .then(() => {
         this.setState({
           isLoggedIn: account.isLoggedIn(),
+          deviceStatus: account.getDeviceStatus(),
         });
       })
       .catch(error => {
@@ -74,38 +124,33 @@ export class HomeScreen extends React.Component<
   }
 
   connectionHandler() {
-    console.log('Handling account connection in Home Screen');
     this.setState({
       isLoggedIn: this.account.isLoggedIn(),
     });
   }
 
-  modalHandler() {
+  hideSessionModal() {
     this.setState({
       showModal: false,
+      sessionType: '',
     });
   }
 
-  async startRecording(type: string) {
-    try {
-      this.setState({
-        recorder: await this.account.startRecording(type),
-        recording: true,
-      });
-    } catch (error: any) {
-      this.setState({
-        error: String(error),
-      });
-    }
-  }
-
-  stopRecording() {
-    console.log('stop recording request');
-    this.account.stopRecording();
+  showSessionModal(type: string, name: string) {
     this.setState({
-      recording: false,
-      recorder: undefined,
+      sessionType: type,
+      sessionName: name,
+      showModal: true,
     });
+  }
+
+  async startRecording(session: SessionInfo) {
+    this.setState({
+      sessionType: '',
+      sessionName: '',
+      showModal: false,
+    });
+    this.navigation.navigate('Live', {session: session});
   }
 
   render() {
@@ -123,154 +168,111 @@ export class HomeScreen extends React.Component<
         <LoggingView account={this.account} />
       </ScrollView>
     );
-    if (this.state.isLoggedIn && !this.state.recording) {
-      view = (
-        <ScrollView style={styles.scrollView}>
-          {this.state.error && error}
-          <View style={styles.container}>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() => this.startRecording('driving_range')}>
-              <View style={styles.button}>
-                <Image source={drivingRangeIcon} style={styles.width50} />
-                <Text style={styles.labelText}>Driving Range Session</Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() => this.startRecording('outdoor_golf_course')}>
-              <View style={styles.button}>
-                <Image source={golfIcon} style={styles.width50} />
-                <Text style={styles.labelText}>Golf course outdoor</Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() => this.startRecording('generic')}>
-              <View style={styles.button}>
-                <Image source={workIcon} style={styles.width50} />
-                <Text style={styles.labelText}>Generic Activity</Text>
-              </View>
-            </TouchableHighlight>
-          </View>
-          <Text style={styles.text}>Previous activities</Text>
-        </ScrollView>
+    if (this.state.isLoggedIn) {
+      let experimentsView = (
+        <View style={[styles.container]}>
+          <ActivityIndicator size="large" color="#00ff00" />
+        </View>
       );
-    } else if (this.state.isLoggedIn && this.state.recording) {
+      let experimentButtons = this.state.experiments.map(experiment => {
+        return (
+          <View style={styles.rowItem} key={experiment.name}>
+            <TouchableHighlight
+              style={styles.width100}
+              onPress={() =>
+                this.showSessionModal('experiment', experiment.name)
+              }>
+              <View style={styles.infoCardLong}>
+                <View style={styles.infoCardContent}>
+                  <Text style={styles.textCard}>
+                    {convertStringToLabel(experiment.name)}
+                  </Text>
+                </View>
+                <View style={styles.infoCardTitle}>
+                  <Text style={styles.titleCard}>{experiment.duration}</Text>
+                </View>
+              </View>
+            </TouchableHighlight>
+          </View>
+        );
+      });
       view = (
         <ScrollView style={styles.scrollView}>
-          <MarkerView
-            modalVisible={this.state.showModal}
-            marker={this.state.marker}
-            markerRecorder={this.state.recorder}
-            handler={this.modalHandler}
-          />
           {this.state.error && error}
-          <Text style={styles.labelText}>Recording for {}</Text>
+          {this.state.showModal && (
+            <SessionInfoFormView
+              type={this.state.sessionType}
+              name={this.state.sessionName}
+              modalVisible={this.state.showModal}
+              headset={this.account.getHeadset()}
+              creationHandler={this.startRecording}
+              cancelHandler={this.hideSessionModal}
+            />
+          )}
+          <Text style={[styles.title, styles.centeredText]}>
+            Start an activity
+          </Text>
           <View style={styles.container}>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() =>
-                this.setState({
-                  showModal: true,
-                  marker: MarkerBuilder.buildShot(Date.now(), 0, 0, 0),
-                })
-              }>
-              <View style={styles.button}>
-                <Icon name={'golf-ball'} color={'white'} size={50} />
-                <Text style={styles.labelText}>Add shot</Text>
-              </View>
-            </TouchableHighlight>
+            <View style={styles.rowItem}>
+              <TouchableHighlight
+                style={styles.width100}
+                onPress={() => this.showSessionModal('driving_range', '')}>
+                <View style={styles.infoCardLong}>
+                  <View style={styles.infoCardContent}>
+                    <Image source={drivingRangeIcon} style={styles.width50} />
+                  </View>
+                  <View style={styles.infoCardTitle}>
+                    <Text style={styles.labelText}>Driving Range Session</Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.rowItem}>
+              <TouchableHighlight
+                style={styles.width100}
+                onPress={() =>
+                  this.showSessionModal('outdoor_golf_course', '')
+                }>
+                <View style={styles.infoCardLong}>
+                  <View style={styles.infoCardContent}>
+                    <Ionicons name={'golf-sharp'} color={'white'} size={50} />
+                  </View>
+                  <View style={styles.infoCardTitle}>
+                    <Text style={styles.labelText}>Golf course outdoor</Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.rowItem}>
+              <TouchableHighlight
+                style={styles.width100}
+                onPress={() => this.showSessionModal('generic', '')}>
+                <View style={styles.infoCardLong}>
+                  <View style={styles.infoCardContent}>
+                    <Ionicons
+                      name={'desktop-outline'}
+                      color={'white'}
+                      size={50}
+                    />
+                  </View>
+                  <View style={styles.infoCardTitle}>
+                    <Text style={styles.labelText}>Work</Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
           </View>
-          <View style={styles.container}>
-            <TouchableHighlight
-              style={styles.cancelButton}
-              onPress={() => this.stopRecording()}>
-              <View style={styles.button}>
-                <Text style={styles.labelText}>StopRecording</Text>
-              </View>
-            </TouchableHighlight>
-          </View>
+          <Text style={[styles.title, styles.centeredText]}>
+            Start an experiment
+          </Text>
+          {this.state.loading && experimentsView}
+          {!this.state.loading && (
+            <View style={styles.container}>{experimentButtons}</View>
+          )}
+          <Text style={styles.text}>Previous activities</Text>
         </ScrollView>
       );
     }
     return view;
   }
 }
-
-const styles = StyleSheet.create({
-  width50: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
-  },
-  container: {
-    backgroundColor: '#010101',
-    color: '#fff',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignContent: 'space-around',
-    columnGap: 10,
-    rowGap: 10,
-    marginTop: 10,
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    width: '100%',
-    margin: 'auto',
-    textAlign: 'left',
-  },
-  labelText: {
-    color: '#fff',
-    marginTop: 10,
-    textAlign: 'center',
-    width: '100%',
-  },
-  text: {
-    backgroundColor: '#010101',
-    color: 'white',
-    paddingLeft: 10,
-    marginTop: 30,
-  },
-  submitButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    backgroundColor: '#1E1E1E',
-    width: '40%',
-  },
-  cancelButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    marginTop: 15,
-    backgroundColor: 'darkred',
-    width: '80%',
-  },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    margin: 'auto',
-    textAlign: 'center',
-  },
-
-  scrollView: {
-    height: '100%',
-    backgroundColor: '#010101',
-  },
-  errorContainer: {
-    backgroundColor: 'red',
-    borderRadius: 12,
-    padding: 10,
-    margin: 10,
-    width: '75%',
-    flexDirection: 'row',
-    alignContent: 'space-between',
-  },
-});

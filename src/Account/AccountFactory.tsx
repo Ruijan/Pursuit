@@ -1,13 +1,18 @@
 import NeurosityAccount from './NeurosityAccount';
-import {HeadsetFactory, HeadsetType} from '../EEGHeadset/HeadsetFactory';
+import {HeadsetFactory} from '../EEGHeadset/HeadsetFactory';
+import {FakeAccount} from './FakeAccount';
+
+export enum AccountType {
+  Neurosity = 0,
+  Fake,
+}
 
 export class AccountFactory {
-  async build() {
-    let headsetFactory = new HeadsetFactory();
-    let account = new NeurosityAccount(
-      headsetFactory.build(HeadsetType.Neurosity),
-    );
-    await account.init();
-    return account;
+  static build(type: AccountType) {
+    if (type === AccountType.Neurosity) {
+      return new NeurosityAccount(HeadsetFactory.buildNeurosityHeadset());
+    } else {
+      return new FakeAccount(HeadsetFactory.buildFakeHeadset());
+    }
   }
 }
