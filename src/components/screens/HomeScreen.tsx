@@ -3,8 +3,16 @@ import PursuitAccount from '../../Account/PursuitAccount';
 import {LoggingView} from '../LoggingView';
 // @ts-ignore
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import {Image, Text, TouchableHighlight, View, ScrollView} from 'react-native';
+import {
+  Image,
+  Text,
+  TouchableHighlight,
+  View,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import {ErrorHandler} from '../../ErrorHandler';
+
 const drivingRangeIcon = require('../../assets/driving-range-icon.png');
 const golfIcon = require('../../assets/18golf.png');
 import styles from '../../styles/Styles';
@@ -12,7 +20,13 @@ import styles from '../../styles/Styles';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {SessionInfoFormView} from '../SessionInfoFormView';
 import {SessionInfo} from '../../Experiment/Session';
-import {experiments} from '../../assets/experiments';
+import {
+  GetObjectCommand,
+  ListObjectsCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
+import {createS3Client} from '../../Experiment/CreateS3Client';
+import { convertStringToLabel } from "../../utils";
 
 type HomeScreenProps = {
   account: PursuitAccount;
@@ -26,6 +40,8 @@ type HomeScreenState = {
   deviceStatus: any;
   sessionType: string;
   sessionName: string;
+  experiments: Array<any>;
+  loading: boolean;
 };
 
 export class HomeScreen extends React.Component<
@@ -35,6 +51,8 @@ export class HomeScreen extends React.Component<
   private errorHandler: ErrorHandler;
   private account: PursuitAccount;
   private navigation: any;
+  private client: S3Client;
+
   constructor(props: any) {
     super(props);
     this.state = {
@@ -44,6 +62,8 @@ export class HomeScreen extends React.Component<
       deviceStatus: undefined,
       sessionType: '',
       sessionName: '',
+      experiments: [],
+      loading: false,
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
@@ -54,6 +74,37 @@ export class HomeScreen extends React.Component<
     this.startRecording = this.startRecording.bind(this);
     this.account.addConnectionHandler(this.connectionHandler);
     this.account.addDisconnectHandler(this.connectionHandler);
+    this.client = createS3Client();
+    this.loadExperiments();
+  }
+
+  private loadExperiments() {
+    let params = {
+      Bucket: 'pursuit-experiments',
+    };
+    try {
+      this.client.send(new ListObjectsCommand(params)).then(results => {
+        results.Contents?.forEach(async file => {
+          let getParams = {
+            Bucket: 'pursuit-experiments',
+            Key: file.Key,
+          };
+          let fileData = await this.client.send(
+            new GetObjectCommand(getParams),
+          );
+          let currentExperiments = this.state.experiments;
+          currentExperiments.push(
+            JSON.parse(await fileData.Body!.transformToString()),
+          );
+          this.setState({
+            experiments: currentExperiments,
+            loading: currentExperiments.length === results.Contents!.length - 1,
+          });
+        });
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   componentDidMount() {
@@ -119,19 +170,31 @@ export class HomeScreen extends React.Component<
       </ScrollView>
     );
     if (this.state.isLoggedIn) {
-      let experimentButtons = experiments.map(experiment => {
+      let experimentsView = (
+        <View style={[styles.container]}>
+          <ActivityIndicator size="large" color="#00ff00" />
+        </View>
+      );
+      let experimentButtons = this.state.experiments.map(experiment => {
         return (
-          <TouchableHighlight
-            style={styles.submitButton}
-            key={experiment.name}
-            onPress={() =>
-              this.showSessionModal('experiment', experiment.name)
-            }>
-            <View style={styles.button}>
-              <Text style={styles.labelText}>{experiment.name}</Text>
-              <Text style={styles.labelText}>{experiment.duration}</Text>
-            </View>
-          </TouchableHighlight>
+          <View style={styles.rowItem} key={experiment.name}>
+            <TouchableHighlight
+              style={styles.width100}
+              onPress={() =>
+                this.showSessionModal('experiment', experiment.name)
+              }>
+              <View style={styles.infoCardLong}>
+                <View style={styles.infoCardContent}>
+                  <Text style={styles.textCard}>
+                    {convertStringToLabel(experiment.name)}
+                  </Text>
+                </View>
+                <View style={styles.infoCardTitle}>
+                  <Text style={styles.titleCard}>{experiment.duration}</Text>
+                </View>
+              </View>
+            </TouchableHighlight>
+          </View>
         );
       });
       view = (
@@ -151,35 +214,62 @@ export class HomeScreen extends React.Component<
             Start an activity
           </Text>
           <View style={styles.container}>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() => this.showSessionModal('driving_range', '')}>
-              <View style={styles.button}>
-                <Image source={drivingRangeIcon} style={styles.width50} />
-                <Text style={styles.labelText}>Driving Range Session</Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() => this.showSessionModal('outdoor_golf_course', '')}>
-              <View style={styles.button}>
-                <Image source={golfIcon} style={styles.width50} />
-                <Text style={styles.labelText}>Golf course outdoor</Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={styles.submitButton}
-              onPress={() => this.showSessionModal('generic', '')}>
-              <View style={styles.button}>
-                <Ionicons name={'desktop-outline'} color={'white'} size={50} />
-                <Text style={styles.labelText}>Work</Text>
-              </View>
-            </TouchableHighlight>
+            <View style={styles.rowItem}>
+              <TouchableHighlight
+                style={styles.width100}
+                onPress={() => this.showSessionModal('driving_range', '')}>
+                <View style={styles.infoCardLong}>
+                  <View style={styles.infoCardContent}>
+                    <Image source={drivingRangeIcon} style={styles.width50} />
+                  </View>
+                  <View style={styles.infoCardTitle}>
+                    <Text style={styles.labelText}>Driving Range Session</Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.rowItem}>
+              <TouchableHighlight
+                style={styles.width100}
+                onPress={() =>
+                  this.showSessionModal('outdoor_golf_course', '')
+                }>
+                <View style={styles.infoCardLong}>
+                  <View style={styles.infoCardContent}>
+                    <Ionicons name={'golf-sharp'} color={'white'} size={50} />
+                  </View>
+                  <View style={styles.infoCardTitle}>
+                    <Text style={styles.labelText}>Golf course outdoor</Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.rowItem}>
+              <TouchableHighlight
+                style={styles.width100}
+                onPress={() => this.showSessionModal('generic', '')}>
+                <View style={styles.infoCardLong}>
+                  <View style={styles.infoCardContent}>
+                    <Ionicons
+                      name={'desktop-outline'}
+                      color={'white'}
+                      size={50}
+                    />
+                  </View>
+                  <View style={styles.infoCardTitle}>
+                    <Text style={styles.labelText}>Work</Text>
+                  </View>
+                </View>
+              </TouchableHighlight>
+            </View>
           </View>
           <Text style={[styles.title, styles.centeredText]}>
             Start an experiment
           </Text>
-          <View style={styles.container}>{experimentButtons}</View>
+          {this.state.loading && experimentsView}
+          {!this.state.loading && (
+            <View style={styles.container}>{experimentButtons}</View>
+          )}
           <Text style={styles.text}>Previous activities</Text>
         </ScrollView>
       );

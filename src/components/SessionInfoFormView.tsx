@@ -149,7 +149,7 @@ export class SessionInfoFormView extends React.Component<
               <Pressable
                 onPress={() => this.submit()}
                 style={modalStyles.submitButton}>
-                <Text>Create</Text>
+                <Text style={modalStyles.textStyle}>Create</Text>
               </Pressable>
             </View>
           </View>

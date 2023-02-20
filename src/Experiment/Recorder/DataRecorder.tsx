@@ -14,13 +14,11 @@ export abstract class DataRecorder {
   protected data: {[name: string]: NeuroData} = {};
   protected marker: MarkerRecorder;
   protected deviceInfo: DeviceInfo;
-  protected startTimeRecording: number = 0;
   protected interval: NodeJS.Timer | undefined;
   protected sessionName: string;
   private _folderPath: string;
   protected fileExist: boolean = false;
   protected client: S3Client;
-  protected recordingHandler: Array<any> = [];
   protected type: string;
 
   constructor(headset: Headset, client: S3Client, type: string) {

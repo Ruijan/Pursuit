@@ -1,6 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import 'react-native-get-random-values';
 // @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {v4 as uuidv4} from 'uuid';
 // @ts-ignore
 import {AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY} from '@env';

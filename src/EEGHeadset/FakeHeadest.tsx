@@ -1,5 +1,5 @@
 import {Headset} from './Headset';
-import { DeviceStatus, SLEEP_MODE_REASON, STATUS } from "@neurosity/sdk/dist/cjs/types/status";
+import { DeviceStatus, STATUS } from "@neurosity/sdk/dist/cjs/types/status";
 
 const device = {
   deviceId: 'FakeDevice123',

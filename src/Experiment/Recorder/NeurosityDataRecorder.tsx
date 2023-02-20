@@ -19,10 +19,10 @@ export class NeurosityDataRecorder extends DataRecorder {
 
   async record() {
     console.log('start recording data');
-    /*this.data.raw = new RawData(
+    this.data.raw = new RawData(
       this.deviceInfo,
       this.neurosity.brainwaves('raw'),
-    );*/
+    );
     this.data.calm = new ProcessedData(
       'calm',
       this.deviceInfo,

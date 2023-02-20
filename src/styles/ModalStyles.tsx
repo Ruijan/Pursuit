@@ -62,7 +62,7 @@ const modalStyles = StyleSheet.create({
     marginTop: 25,
     marginLeft: 5,
     marginRight: 5,
-    backgroundColor: 'white',
+    backgroundColor: '#199FDD',
     width: '45%',
     alignItems: 'center',
     height: 35,

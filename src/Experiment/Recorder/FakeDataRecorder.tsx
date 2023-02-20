@@ -1,5 +1,4 @@
 import {DataRecorder} from './DataRecorder';
-import {RawData} from '../Data/RawData';
 import {Observable} from 'rxjs';
 import {ProcessedData} from '../Data/ProcessedData';
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';

@@ -19,7 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AccountFactory, AccountType} from './Account/AccountFactory';
 
 const Stack = createBottomTabNavigator();
-const account = new PursuitAccount(AccountFactory.build(AccountType.Fake));
+const account = new PursuitAccount(AccountFactory.build(AccountType.Neurosity));
 const errorHandler = new ErrorHandler();
 const AppContext = React.createContext(account);
 

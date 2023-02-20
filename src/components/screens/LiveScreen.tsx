@@ -17,6 +17,7 @@ import {ErrorHandler} from '../../ErrorHandler';
 import {Session} from '../../Experiment/Session';
 import {ExperimentView} from '../ExperimentView';
 import {ExperimentSession} from '../../Experiment/ExperimentSession';
+import styles from '../../styles/Styles';
 
 type LiveScreenProps = {
   account: PursuitAccount;
@@ -32,6 +33,7 @@ type LiveScreenState = {
   stoppingRecording: boolean;
   recordingTime: number;
   startingRecording: boolean;
+  expectedMarker: string;
   session: Session;
 };
 
@@ -62,6 +64,7 @@ export class LiveScreen extends React.Component<
       recordingTime: 0,
       startingRecording: true,
       session: this.session,
+      expectedMarker: '',
     };
     this.modalHandler = this.modalHandler.bind(this);
     this.startHandler = this.startHandler.bind(this);
@@ -83,6 +86,10 @@ export class LiveScreen extends React.Component<
     this.setState({
       recordingTime: this.session.recorder.getTimeSinceRecording(),
       session: this.session,
+      expectedMarker:
+        this.state.session instanceof ExperimentSession
+          ? this.session.expectedMarker
+          : '',
     });
   }
 
@@ -206,7 +213,12 @@ export class LiveScreen extends React.Component<
             </View>
           </TouchableHighlight>
           <TouchableHighlight
-            style={styles.submitButton}
+            style={[
+              styles.submitButton,
+              this.state.expectedMarker === 'stop_walk'
+                ? styles.highlightedButton
+                : {},
+            ]}
             onPress={() =>
               this.setState({
                 showModal: true,
@@ -235,79 +247,3 @@ export class LiveScreen extends React.Component<
     );
   }
 }
-const styles = StyleSheet.create({
-  width50: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
-  },
-  container: {
-    backgroundColor: '#010101',
-    color: '#fff',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignContent: 'space-around',
-    columnGap: 10,
-    rowGap: 10,
-    marginTop: 10,
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    width: '100%',
-    margin: 'auto',
-    textAlign: 'left',
-  },
-  labelText: {
-    color: '#fff',
-    marginTop: 10,
-    textAlign: 'center',
-    width: '100%',
-  },
-  text: {
-    backgroundColor: '#010101',
-    color: 'white',
-    paddingLeft: 10,
-    marginTop: 30,
-  },
-  submitButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    backgroundColor: '#1E1E1E',
-    width: '40%',
-  },
-  cancelButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 4,
-    elevation: 3,
-    marginTop: 15,
-    backgroundColor: 'darkred',
-    width: '80%',
-  },
-  button: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    margin: 'auto',
-    textAlign: 'center',
-  },
-
-  scrollView: {
-    height: '100%',
-    backgroundColor: '#010101',
-  },
-  errorContainer: {
-    backgroundColor: 'red',
-    borderRadius: 12,
-    padding: 10,
-    margin: 10,
-    width: '75%',
-    flexDirection: 'row',
-    alignContent: 'space-between',
-  },
-});

@@ -19,6 +19,15 @@ enum ExperimentState {
 }
 
 export class ExperimentSession extends Session {
+  get maxDuration(): number {
+    return this._maxDuration;
+  }
+  get previousStepIcon(): string {
+    return this._previousStepIcon;
+  }
+  get currentStepIcon(): string {
+    return this._currentStepIcon;
+  }
   get currentTotalTrial(): number {
     return this._currentTotalTrial;
   }
@@ -70,10 +79,13 @@ export class ExperimentSession extends Session {
   private _previousStepName: string = '';
   private _nextStepName: string = '';
   private _currentDuration: number = 0;
+  private _maxDuration: number = 0;
   private _markerExpected: string = '';
   private _maxTrials: number = 0;
   private _maxRuns: number = 0;
   private _currentTotalTrial: number = 0;
+  private _currentStepIcon: string = '';
+  private _previousStepIcon: string = '';
   private currentSound: Array<string> = [];
   private sounds: {[key: string]: Sound} = {};
 
@@ -88,7 +100,6 @@ export class ExperimentSession extends Session {
     this.initTrialCount();
     Sound.setCategory('Playback');
     sounds.forEach(sound => {
-      console.log('loading ', sound.name);
       this.sounds[sound.name] = new Sound(sound.file, error => {
         if (error) {
           console.log('failed to load the sound', error);
@@ -199,7 +210,9 @@ export class ExperimentSession extends Session {
     let currentStage = null;
     if (this._state === ExperimentState.TRIAL) {
       currentStage =
-        this.experiment.trials[this.currentSituation][this.currentTrialStep];
+        this.experiment.trials[this.currentSituation].sequence[
+          this.currentTrialStep
+        ];
     } else if (this._state === ExperimentState.BREAK) {
       currentStage = this.experiment.break;
     } else if (this._state === ExperimentState.CALIBRATING) {
@@ -210,10 +223,7 @@ export class ExperimentSession extends Session {
 
   private async runBreak() {
     if (this._currentRun >= this.experiment.nbRuns) {
-      this._state = ExperimentState.DONE;
-      clearInterval(this.intervalCallback);
-      Object.keys(this.sounds).forEach(name => this.sounds[name].release());
-      this.stopRecording().then();
+      await this.stopRecording();
       return;
     }
     if (this.trialState === TrialState.WAITING) {
@@ -354,19 +364,32 @@ export class ExperimentSession extends Session {
 
   private async startStep(currentStep: any, saveMarker: boolean) {
     this._previousStepName = this._currentStepName;
+    this._previousStepIcon = this._currentStepIcon;
+    this._currentStepIcon = currentStep.data.hasOwnProperty('icon')
+      ? currentStep.data.icon
+      : '';
     this._currentStepName = currentStep.name;
+    this._markerExpected = '';
     this.trialState = TrialState.RUNNING;
     let currentStop = currentStep.stop;
     if (currentStop.type === 'multiple_or') {
       let result = currentStop.value.filter((stop: {type: string}) => {
         return stop.type === 'duration';
       });
+      let markerResult = currentStop.value.filter((stop: {type: string}) => {
+        return stop.type === 'marker';
+      });
       if (result.length > 0) {
         currentStop = result[0];
       }
+      if (markerResult.length > 0) {
+        this._markerExpected = markerResult[0].value;
+      }
     }
+    this._maxDuration = 0;
     if (currentStop.type === 'duration') {
       this.previousTimestamp = Date.now();
+      this._maxDuration = currentStop.value;
     }
     if (saveMarker) {
       this.recorder.addMarker(
@@ -377,30 +400,37 @@ export class ExperimentSession extends Session {
       );
     }
     if (currentStep.data.hasOwnProperty('start_audio')) {
-      this.playAudioFile(currentStep.data.start_audio);
+      this.playAudioFile(currentStep.data.start_audio, false);
     }
     if (currentStep.data.hasOwnProperty('audio_file')) {
-      this.playAudioFile(currentStep.data.audio_file);
+      let loop = false;
+      if (currentStep.data.hasOwnProperty('loop')) {
+        loop = currentStep.data.loop;
+      }
+      this.playAudioFile(currentStep.data.audio_file, loop);
     }
     this.updateStateHandler.forEach(handler => handler());
   }
 
-  private playAudioFile(audioFile: string) {
+  private playAudioFile(audioFile: string, loop: boolean) {
     if (!this.currentSound.includes(audioFile)) {
       this.currentSound.push(audioFile);
     }
+    this.sounds[audioFile].setNumberOfLoops(loop ? -1 : 0);
     this.sounds[audioFile].play(() => {
       const index = this.currentSound.indexOf(audioFile);
       this.currentSound.splice(index, 1);
     });
   }
 
-  private getAudioFile(audioFile: string) {
-    let soundResults = sounds.filter(sound => sound.name === audioFile);
-    if (soundResults.length === 0) {
-      throw Error('No audio file found with name ' + audioFile);
-    }
-    return soundResults[0];
+  async stopRecording(): Promise<void> {
+    this._state = ExperimentState.DONE;
+    clearInterval(this.intervalCallback);
+    Object.keys(this.sounds).forEach(name => {
+      this.sounds[name].stop();
+      this.sounds[name].release();
+    });
+    await super.stopRecording();
   }
 }
 

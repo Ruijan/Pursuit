@@ -55,7 +55,6 @@ export class MarkerRecorder {
     if (this.saving || this.markerQueue.length === 0) {
       return;
     }
-    console.log('Saving markers');
     this.saving = true;
     let filePath = this._folderPath + '/marker.json';
     let currentData: {markers: Array<any>} = {markers: []};
@@ -69,7 +68,6 @@ export class MarkerRecorder {
       }
     }
     currentData.markers = currentData.markers.concat(this.markerQueue);
-    console.log(currentData);
     await RNFetchBlob.fs.writeFile(
       filePath,
       JSON.stringify(currentData, undefined, '\t'),
