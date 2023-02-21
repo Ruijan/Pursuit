@@ -2,7 +2,7 @@ import {DataRecorder} from './DataRecorder';
 import {Observable} from 'rxjs';
 import {ProcessedData} from '../Data/ProcessedData';
 import {DeviceInfo} from '@neurosity/sdk/dist/cjs/types/deviceInfo';
-import { RawData } from "../Data/RawData";
+import {RawData} from '../Data/RawData';
 const accKeys = [
   'acceleration',
   'inclination',
