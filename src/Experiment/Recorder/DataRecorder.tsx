@@ -63,38 +63,28 @@ export abstract class DataRecorder {
     clearInterval(this.interval);
     await this.saveData();
     await this.marker.saveMarkers();
+    let path = await this.uploadData();
+    this.data = {};
+    console.log('files uploaded in ', path);
+  }
+
+  async uploadData() {
     let path = this.type + '/' + this.sessionName + '/';
     for (const name of Object.keys(this.data)) {
-      let filename = this._folderPath + '/' + name + '.csv';
-      let params = {
-        Bucket: 'pursuit-poc',
-        Key: path + name + '.csv',
-        Body: await RNFetchBlob.fs.readFile(filename, 'utf8'),
-      };
-      try {
-        await this.client.send(new PutObjectCommand(params));
-      } catch (error) {
-        console.log(error);
-      }
+      await this.uploadFile(path, name + '.csv');
     }
-    let sessionFilename = this._folderPath + '/session.json';
-    if (await RNFetchBlob.fs.exists(sessionFilename)) {
-      let params = {
-        Bucket: 'pursuit-poc',
-        Key: path + 'session.json',
-        Body: await RNFetchBlob.fs.readFile(sessionFilename, 'utf8'),
-      };
-      try {
-        await this.client.send(new PutObjectCommand(params));
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    let filename = this._folderPath + '/marker.json';
+    await this.uploadFile(path, 'marker.json');
+    await this.uploadFile(path, 'session.json');
+    await this.uploadFile(path, 'marker.json');
+    return path;
+  }
+
+  private async uploadFile(path: string, file: string) {
+    let filename = this._folderPath + '/' + file;
     if (await RNFetchBlob.fs.exists(filename)) {
       let params = {
         Bucket: 'pursuit-poc',
-        Key: path + 'marker.json',
+        Key: path + file,
         Body: await RNFetchBlob.fs.readFile(filename, 'utf8'),
       };
       try {
@@ -103,8 +93,6 @@ export abstract class DataRecorder {
         console.log(error);
       }
     }
-    this.data = {};
-    console.log('files uploaded in ', path);
   }
 
   async saveData() {

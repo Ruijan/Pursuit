@@ -18,6 +18,8 @@ import {Session} from '../../Experiment/Session';
 import {ExperimentView} from '../ExperimentView';
 import {ExperimentSession} from '../../Experiment/ExperimentSession';
 import styles from '../../styles/Styles';
+// @ts-ignore
+import KeepAwake from 'react-native-keep-awake';
 
 type LiveScreenProps = {
   account: PursuitAccount;
@@ -134,6 +136,7 @@ export class LiveScreen extends React.Component<
     if (this.state.stoppingRecording) {
       return (
         <ScrollView style={styles.scrollView}>
+          <KeepAwake />
           <ActivityIndicator size="large" color="#199FDD" />
           <Text style={styles.labelText}>Uploading data</Text>
         </ScrollView>
@@ -141,6 +144,7 @@ export class LiveScreen extends React.Component<
     }
     return (
       <ScrollView style={styles.scrollView}>
+        <KeepAwake />
         <MarkerView
           modalVisible={this.state.showModal}
           marker={this.state.marker}

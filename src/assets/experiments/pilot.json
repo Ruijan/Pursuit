@@ -1,16 +1,16 @@
 {
   "name": "focus_challenge",
-  "duration": "60min",
+  "duration": "12min",
   "nbSituations": 2,
   "nbTrials": [5, 5],
-  "nbRuns": 6,
+  "nbRuns": 1,
   "break": {
     "start": {
       "type": "after_previous"
     },
     "stop": {
       "type": "duration",
-      "value": 300
+      "value": 60
     }
   },
   "calibration": [
@@ -110,7 +110,7 @@
           },
           "stop": {
             "type": "duration",
-            "value": 15
+            "value": 5
           },
           "data": {
             "start_audio": "trial_over",
@@ -170,7 +170,7 @@
           },
           "stop": {
             "type": "duration",
-            "value": 15
+            "value": 5
           },
           "data": {
             "start_audio": "trial_over",
