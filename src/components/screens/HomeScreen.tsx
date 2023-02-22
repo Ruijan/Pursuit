@@ -10,6 +10,7 @@ import {
   View,
   ScrollView,
   ActivityIndicator,
+  PermissionsAndroid,
 } from 'react-native';
 import {ErrorHandler} from '../../ErrorHandler';
 
@@ -85,6 +86,27 @@ export class HomeScreen extends React.Component<
   }
 
   private async moveFilesToDownload() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Cool Photo App Camera Permission',
+          message:
+            'Cool Photo App needs access to your camera ' +
+            'so you can take awesome pictures.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can write files');
+      } else {
+        console.log('Writing files permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
     let sourcePath = RNFetchBlob.fs.dirs.DocumentDir;
     let destinationPath = RNFetchBlob.fs.dirs.DCIMDir;
     let listFolders = await RNFetchBlob.fs.ls(sourcePath);
