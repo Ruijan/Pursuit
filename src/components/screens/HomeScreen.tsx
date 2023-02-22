@@ -67,7 +67,7 @@ export class HomeScreen extends React.Component<
       experiments: [],
       loading: false,
       movingFiles: true,
-      currentFile: '',
+      currentFile: 'None',
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
@@ -76,6 +76,7 @@ export class HomeScreen extends React.Component<
     this.hideSessionModal = this.hideSessionModal.bind(this);
     this.showSessionModal = this.showSessionModal.bind(this);
     this.startRecording = this.startRecording.bind(this);
+    this.moveFilesToDownload = this.moveFilesToDownload.bind(this);
     this.account.addConnectionHandler(this.connectionHandler);
     this.account.addDisconnectHandler(this.connectionHandler);
     this.client = createS3Client();
@@ -92,6 +93,9 @@ export class HomeScreen extends React.Component<
         let experimentFiles = await RNFetchBlob.fs.ls(
           sourcePath + '/' + folder,
         );
+        this.setState({
+          currentFile: folder,
+        });
         console.log('Files for folder', folder, experimentFiles);
         if (!(await RNFetchBlob.fs.exists(destinationPath + '/' + folder))) {
           await RNFetchBlob.fs.mkdir(destinationPath + '/' + folder);
@@ -218,8 +222,8 @@ export class HomeScreen extends React.Component<
         <LoggingView account={this.account} />
         {this.state.movingFiles && (
           <View style={styles.container}>
-            <Text style={styles.labelText}>Moving files</Text>
-            <Text style={styles.labelText}>{this.state.currentFile}</Text>
+            <Text style={styles.labelText}>Moving files test</Text>
+            <Text style={styles.labelText}>Test {this.state.currentFile}</Text>
             {filesView}
           </View>
         )}
@@ -324,6 +328,7 @@ export class HomeScreen extends React.Component<
           {this.state.movingFiles && (
             <View style={styles.container}>
               <Text style={styles.labelText}>Moving files</Text>
+              <Text style={styles.labelText}>Test {this.state.currentFile}</Text>
               {filesView}
             </View>
           )}
