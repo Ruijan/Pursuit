@@ -26,6 +26,7 @@ import {
 } from '@aws-sdk/client-s3';
 import {createS3Client} from '../../Experiment/CreateS3Client';
 import {convertStringToLabel} from '../../utils';
+import RNFetchBlob from "rn-fetch-blob";
 
 type HomeScreenProps = {
   account: PursuitAccount;
@@ -75,6 +76,38 @@ export class HomeScreen extends React.Component<
     this.account.addDisconnectHandler(this.connectionHandler);
     this.client = createS3Client();
     this.loadExperiments();
+    this.moveFilesToDownload();
+  }
+
+  private async moveFilesToDownload() {
+    let sourcePath = RNFetchBlob.fs.dirs.DocumentDir;
+    let destinationPath = RNFetchBlob.fs.dirs.DownloadDir;
+    let listFolders = await RNFetchBlob.fs.ls(sourcePath);
+    for (let folder of listFolders) {
+      if (folder.includes('Crown')) {
+        let experimentFiles = await RNFetchBlob.fs.ls(
+          sourcePath + '/' + folder,
+        );
+        console.log('Files for folder', folder, experimentFiles);
+        if (!(await RNFetchBlob.fs.exists(destinationPath + '/' + folder))) {
+          await RNFetchBlob.fs.mkdir(destinationPath + '/' + folder);
+        }
+        for (let file of experimentFiles) {
+          if (
+            !(await RNFetchBlob.fs.exists(
+              destinationPath + '/' + folder + '/' + file,
+            ))
+          ) {
+            await RNFetchBlob.fs.mv(
+              sourcePath + '/' + folder + '/' + file,
+              destinationPath + '/' + folder + '/' + file,
+            );
+          }
+        }
+      }
+    }
+    console.log('Done moving files to download folder');
+    //
   }
 
   private loadExperiments() {
