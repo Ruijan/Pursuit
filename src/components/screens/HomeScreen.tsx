@@ -43,6 +43,7 @@ type HomeScreenState = {
   experiments: Array<any>;
   loading: boolean;
   movingFiles: boolean;
+  currentFile: string;
 };
 
 export class HomeScreen extends React.Component<
@@ -66,6 +67,7 @@ export class HomeScreen extends React.Component<
       experiments: [],
       loading: false,
       movingFiles: true,
+      currentFile: '',
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
@@ -95,12 +97,15 @@ export class HomeScreen extends React.Component<
           await RNFetchBlob.fs.mkdir(destinationPath + '/' + folder);
         }
         for (let file of experimentFiles) {
+          this.setState({
+            currentFile: folder + '/' + file,
+          });
           if (
             !(await RNFetchBlob.fs.exists(
               destinationPath + '/' + folder + '/' + file,
             ))
           ) {
-            await RNFetchBlob.fs.mv(
+            await RNFetchBlob.fs.cp(
               sourcePath + '/' + folder + '/' + file,
               destinationPath + '/' + folder + '/' + file,
             );
@@ -214,6 +219,7 @@ export class HomeScreen extends React.Component<
         {this.state.movingFiles && (
           <View style={styles.container}>
             <Text style={styles.labelText}>Moving files</Text>
+            <Text style={styles.labelText}>{this.state.currentFile}</Text>
             {filesView}
           </View>
         )}
