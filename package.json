@@ -1,6 +1,6 @@
 {
   "name": "pursuit",
-  "version": "0.0.2-dev.13",
+  "version": "0.0.2-dev.14",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

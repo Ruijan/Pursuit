@@ -328,7 +328,9 @@ export class HomeScreen extends React.Component<
           {this.state.movingFiles && (
             <View style={styles.container}>
               <Text style={styles.labelText}>Moving files</Text>
-              <Text style={styles.labelText}>Test {this.state.currentFile}</Text>
+              <Text style={styles.labelText}>
+                Test {this.state.currentFile}
+              </Text>
               {filesView}
             </View>
           )}
