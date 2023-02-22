@@ -94,7 +94,7 @@ jobs:
         with:
           appName: rechenmann/Pursuit
           token: ${{secrets.APP_CENTER_TOKEN_ANDROID}}
-          group: Testers
+          group: Collaborators
           file: android/app-release.aab
           notifyTesters: true
           debug: false
