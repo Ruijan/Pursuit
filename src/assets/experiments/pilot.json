@@ -2,7 +2,7 @@
   "name": "focus_challenge",
   "duration": "12min",
   "nbSituations": 2,
-  "nbTrials": [5, 5],
+  "nbTrials": [3, 3],
   "nbRuns": 1,
   "break": {
     "start": {
@@ -14,36 +14,6 @@
     }
   },
   "calibration": [
-    {
-      "name": "walk",
-      "start": {
-        "type": "marker",
-        "value": "start_walk"
-      },
-      "stop": {
-        "type": "duration",
-        "value": 30
-      },
-      "data": {
-        "start_audio": "walk",
-        "icon": "walk"
-      }
-    },
-    {
-      "name": "stand_still",
-      "start": {
-        "type": "marker",
-        "value": "stop_walk"
-      },
-      "stop": {
-        "type": "duration",
-        "value": 30
-      },
-      "data": {
-        "start_audio": "stand_still",
-        "icon": "man"
-      }
-    },
     {
       "name": "rest",
       "start": {
