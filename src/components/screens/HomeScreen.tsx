@@ -26,7 +26,7 @@ import {
 } from '@aws-sdk/client-s3';
 import {createS3Client} from '../../Experiment/CreateS3Client';
 import {convertStringToLabel} from '../../utils';
-import RNFetchBlob from "rn-fetch-blob";
+import RNFetchBlob from 'rn-fetch-blob';
 
 type HomeScreenProps = {
   account: PursuitAccount;
