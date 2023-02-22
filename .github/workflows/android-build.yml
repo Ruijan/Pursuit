@@ -92,7 +92,7 @@ jobs:
       - name: Upload artifact to App Center
         uses: wzieba/AppCenter-Github-Action@v1
         with:
-          appName: Ruijan/Pursuit
+          appName: JulienR/Pursuit
           token: ${{secrets.APP_CENTER_TOKEN_ANDROID}}
           group: Testers
           file: android/app-release.aab

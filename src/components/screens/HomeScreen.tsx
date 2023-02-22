@@ -86,7 +86,7 @@ export class HomeScreen extends React.Component<
 
   private async moveFilesToDownload() {
     let sourcePath = RNFetchBlob.fs.dirs.DocumentDir;
-    let destinationPath = RNFetchBlob.fs.dirs.DownloadDir;
+    let destinationPath = RNFetchBlob.fs.dirs.DCIMDir;
     let listFolders = await RNFetchBlob.fs.ls(sourcePath);
     for (let folder of listFolders) {
       if (folder.includes('Crown')) {
@@ -94,12 +94,15 @@ export class HomeScreen extends React.Component<
           sourcePath + '/' + folder,
         );
         this.setState({
-          currentFile: folder,
+          currentFile: folder + ' - creating folder ',
         });
         console.log('Files for folder', folder, experimentFiles);
         if (!(await RNFetchBlob.fs.exists(destinationPath + '/' + folder))) {
           await RNFetchBlob.fs.mkdir(destinationPath + '/' + folder);
         }
+        this.setState({
+          currentFile: folder + ' Folder created ',
+        });
         for (let file of experimentFiles) {
           this.setState({
             currentFile: folder + '/' + file,
