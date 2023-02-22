@@ -42,6 +42,7 @@ type HomeScreenState = {
   sessionName: string;
   experiments: Array<any>;
   loading: boolean;
+  movingFiles: boolean;
 };
 
 export class HomeScreen extends React.Component<
@@ -64,6 +65,7 @@ export class HomeScreen extends React.Component<
       sessionName: '',
       experiments: [],
       loading: false,
+      movingFiles: true,
     };
     this.errorHandler = this.props.errorHandler;
     this.account = this.props.account;
@@ -76,7 +78,7 @@ export class HomeScreen extends React.Component<
     this.account.addDisconnectHandler(this.connectionHandler);
     this.client = createS3Client();
     this.loadExperiments();
-    this.moveFilesToDownload();
+    this.moveFilesToDownload().then(() => this.setState({movingFiles: false}));
   }
 
   private async moveFilesToDownload() {
@@ -187,6 +189,16 @@ export class HomeScreen extends React.Component<
   }
 
   render() {
+    let experimentsView = (
+      <View style={[styles.container]}>
+        <ActivityIndicator size="large" color="#199FDD" />
+      </View>
+    );
+    let filesView = (
+      <View style={[styles.container]}>
+        <ActivityIndicator size="large" color="#199FDD" />
+      </View>
+    );
     let error = (
       <View style={styles.errorContainer}>
         <Text>{this.state.error}</Text>
@@ -199,14 +211,15 @@ export class HomeScreen extends React.Component<
       <ScrollView style={styles.scrollView}>
         {this.state.error && error}
         <LoggingView account={this.account} />
+        {this.state.movingFiles && (
+          <View style={styles.container}>
+            <Text style={styles.labelText}>Moving files</Text>
+            {filesView}
+          </View>
+        )}
       </ScrollView>
     );
     if (this.state.isLoggedIn) {
-      let experimentsView = (
-        <View style={[styles.container]}>
-          <ActivityIndicator size="large" color="#199FDD" />
-        </View>
-      );
       let experimentButtons = this.state.experiments.map(experiment => {
         return (
           <View style={styles.rowItem} key={experiment.name}>
@@ -301,6 +314,12 @@ export class HomeScreen extends React.Component<
           {this.state.loading && experimentsView}
           {!this.state.loading && (
             <View style={styles.container}>{experimentButtons}</View>
+          )}
+          {this.state.movingFiles && (
+            <View style={styles.container}>
+              <Text style={styles.labelText}>Moving files</Text>
+              {filesView}
+            </View>
           )}
           <Text style={styles.text}>Previous activities</Text>
         </ScrollView>
