@@ -87,63 +87,104 @@ export class HomeScreen extends React.Component<
 
   private async moveFilesToDownload() {
     try {
-      const granted = await PermissionsAndroid.request(
+      const granted1 = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         {
-          title: 'Cool Photo App Camera Permission',
-          message:
-            'Cool Photo App needs access to your camera ' +
-            'so you can take awesome pictures.',
+          title: 'Pursuit AI writing files permission',
+          message: 'Pursuit AI needs permission to save data file.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',
         },
       );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can write files');
+      const granted2 = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        {
+          title: 'Pursuit AI reading files permission',
+          message: 'Pursuit AI needs permission to save data file.',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        },
+      );
+      if (
+        granted1 === PermissionsAndroid.RESULTS.GRANTED &&
+        granted2 === PermissionsAndroid.RESULTS.GRANTED
+      ) {
+        console.log('You can read and write files');
       } else {
-        console.log('Writing files permission denied');
+        console.log('Reading and Writing files permission denied');
       }
     } catch (err) {
       console.warn(err);
     }
-    let sourcePath = RNFetchBlob.fs.dirs.DocumentDir;
-    let destinationPath = RNFetchBlob.fs.dirs.DCIMDir;
-    let listFolders = await RNFetchBlob.fs.ls(sourcePath);
-    for (let folder of listFolders) {
-      if (folder.includes('Crown')) {
-        let experimentFiles = await RNFetchBlob.fs.ls(
-          sourcePath + '/' + folder,
-        );
-        this.setState({
-          currentFile: folder + ' - creating folder ',
-        });
-        console.log('Files for folder', folder, experimentFiles);
-        if (!(await RNFetchBlob.fs.exists(destinationPath + '/' + folder))) {
-          await RNFetchBlob.fs.mkdir(destinationPath + '/' + folder);
-        }
-        this.setState({
-          currentFile: folder + ' Folder created ',
-        });
-        for (let file of experimentFiles) {
+    let sourcePath = RNFetchBlob.fs.dirs.DocumentDir + '/experiment';
+    let destinationPath = RNFetchBlob.fs.dirs.DownloadDir;
+    let listSubjects = await RNFetchBlob.fs.ls(sourcePath);
+    for (let subject of listSubjects) {
+      let destSubject = subject.replace(' ', '_');
+      let subjectPath = sourcePath + '/' + subject;
+      let listExperiments = await RNFetchBlob.fs.ls(subjectPath);
+      if (!(await RNFetchBlob.fs.exists(destinationPath + '/' + destSubject))) {
+        await RNFetchBlob.fs.mkdir(destinationPath + '/' + destSubject);
+      }
+      let isDir = true;
+      for (let experiment of listExperiments) {
+        let experimentPath = subjectPath + '/' + experiment;
+        if (isDir && (await RNFetchBlob.fs.isDir(experimentPath))) {
+          let destination =
+            destinationPath + '/' + destSubject + '/' + experiment;
           this.setState({
-            currentFile: folder + '/' + file,
+            currentFile: subject + ' - ' + experiment + ' - creating folder ',
           });
-          if (
-            !(await RNFetchBlob.fs.exists(
-              destinationPath + '/' + folder + '/' + file,
-            ))
-          ) {
-            await RNFetchBlob.fs.cp(
-              sourcePath + '/' + folder + '/' + file,
-              destinationPath + '/' + folder + '/' + file,
-            );
+          if (!(await RNFetchBlob.fs.exists(destination))) {
+            await RNFetchBlob.fs.mkdir(destination);
           }
+          this.setState({
+            currentFile: subject + ' - ' + experiment + ' Folder created ',
+          });
+          await this.moveExperiment(
+            subject,
+            experiment,
+            destination,
+            experimentPath,
+          );
+        } else {
+          isDir = false;
+        }
+        if (!isDir) {
+          let destination = destinationPath + '/' + destSubject;
+          await this.moveExperiment(
+            subject,
+            experiment,
+            destination,
+            subjectPath,
+          );
         }
       }
     }
     console.log('Done moving files to download folder');
     //
+  }
+
+  private async moveExperiment(
+    subject: string,
+    experiment: string,
+    destination: string,
+    experimentPath: string,
+  ) {
+    let experimentFiles = await RNFetchBlob.fs.ls(experimentPath);
+    for (let file of experimentFiles) {
+      this.setState({
+        currentFile: subject + ' - ' + experiment + ' - ' + file,
+      });
+      if (!(await RNFetchBlob.fs.exists(destination + '/' + file))) {
+        await RNFetchBlob.fs.cp(
+          experimentPath + '/' + file,
+          destination + '/' + file,
+        );
+      }
+    }
   }
 
   private loadExperiments() {
